@@ -46,6 +46,7 @@ namespace RoseOnlineBot
                 selectedProcess = p[0];
             if (selectedProcess != null)
             {
+                EjectIfAlreadyInjected(selectedProcess);
                 pipeServer = new Communication(@"myRosePipe" + selectedProcess.Id);
                 pipeServer.Start();
 
@@ -67,16 +68,24 @@ namespace RoseOnlineBot
 
         private void EjectIfAlreadyInjected(Process myProcess)
         {
-            Injector injector = new Injector(myProcess);
-            myProcess = Process.GetProcessById(myProcess.Id);
-            foreach (ProcessModule mod in myProcess.Modules)
+            bool found = false;
+            do
             {
-                if (mod.ModuleName == "rBotMagic.dll")
+                found = false;
+                Injector injector = new Injector(myProcess);
+                myProcess = Process.GetProcessById(myProcess.Id);
+
+                foreach (ProcessModule mod in myProcess.Modules)
                 {
-                    injector.EjectLibrary(@"C:\develop\rBotMagic\x64\Debug\rBotMagic.dll", mod);
-                    break;
+                    if (mod.ModuleName == "rBotMagic.dll")
+                    {
+                        injector.EjectLibrary(@"C:\develop\rBotMagic\x64\Debug\rBotMagic.dll", mod);
+                        found = true;
+                        break;
+                    }
                 }
             }
+            while (found);
         }
 
         private void btnBrowseWaypoint_Click(object sender, EventArgs e)
@@ -153,28 +162,49 @@ namespace RoseOnlineBot
         }
 
 
-        
-        
+
+
         private void button1_Click(object sender, EventArgs e)
         {
+            //GameData.Player.SendJoinZone();
             var startingPointX = GameData.Player.PosX;
-            var startingPointY = GameData.Player.PosX;
+            var startingPointY = GameData.Player.PosY;
             while (true)
             {
-                if(Vector2D.CalculateDistance(startingPointX, startingPointY, GameData.Player.PosX, GameData.Player.PosX) >= 600)
+                if (Vector2D.CalculateDistance(startingPointX, startingPointY, GameData.Player.PosX, GameData.Player.PosY) >= 2000 && GameData.Player.Targets.Count == 0)
                 {
                     GameData.Player.Move(startingPointX, startingPointY);
+                    while (Vector2D.CalculateDistance(startingPointX, startingPointY, GameData.Player.PosX, GameData.Player.PosY) >= 100 && GameData.Player.Targets.Count == 0) // run back to starting point
+                    {
+                        Thread.Sleep(50);
+                        if (GameData.Player.CurrentAnimation != Models.Logic.Animation.Run)
+                            GameData.Player.Move(startingPointX, startingPointY);
+                    }
                 }
-                if (Convert.ToSingle(GameData.Player.HP) / Convert.ToSingle(GameData.Player.MAXHP) < 0.5f)
+                if (Convert.ToSingle(GameData.Player.HP) / Convert.ToSingle(GameData.Player.MAXHP) < 0.5f && GameData.Player.Targets.Count == 0)
                 {
+                    while(GameData.Player.CurrentAnimation != Models.Logic.Animation.Stand)
+                    {
+                        Thread.Sleep(100);
+                    }
+                    
+
                     GameData.Player.ToggleSit();
                     Thread.Sleep(500);
-                    while (Convert.ToSingle(GameData.Player.HP) / Convert.ToSingle(GameData.Player.MAXHP) < 1.0f)
+                    while (Convert.ToSingle(GameData.Player.HP) / Convert.ToSingle(GameData.Player.MAXHP) < 1.0f && GameData.Player.Targets.Count == 0)
+                    {
+                        if(GameData.Player.CurrentAnimation == Models.Logic.Animation.Stand)
+                        {
+                            GameData.Player.ToggleSit();
+                            Thread.Sleep(500);
+                        }
                         Thread.Sleep(100);
+                    }
+                        
                     GameData.Player.ToggleSit();
                     Thread.Sleep(1000);
                 }
-                
+
 
                 if (GameData.Player.Targets.Count == 0 && GameData.Player.FindNextTarget() is NpcEntity newTarget)
                 {
@@ -184,7 +214,7 @@ namespace RoseOnlineBot
                 for (int i = 0; i < GameData.Player.Targets.Count; i++)
                 {
                     var mobs = GameData.Player.GetMobs();
-                    var targetMob = mobs.FirstOrDefault(x => x.Id ==  GameData.Player.Targets[i]);
+                    var targetMob = mobs.FirstOrDefault(x => x.Id == GameData.Player.Targets[i]);
                     if (targetMob == null)
                     {
                         GameData.Player.Targets.Remove(GameData.Player.Targets[i]);
@@ -192,8 +222,7 @@ namespace RoseOnlineBot
                     }
                     else
                     {
-                        bool firstAttack = true;
-                        while (targetMob.HP> 0)
+                        while (targetMob.HP > 0)
                         {
                             mobs = GameData.Player.GetMobs();
                             targetMob = mobs.FirstOrDefault(x => x.Id == GameData.Player.Targets[i]);
@@ -203,32 +232,71 @@ namespace RoseOnlineBot
                                 i--;
                                 break;
                             }
-                            if(firstAttack)
-                            {
-                                firstAttack = false;
-                                
-                            }
                             GameData.Player.TargetId = targetMob.Id;
 
-                            GameData.Player.AttackTarget(targetMob.DBId);
-                            Thread.Sleep(100);
-                            
-                            //GameData.Player.Move(targetMob.PosX, targetMob.PosY);
-                            //GameData.Player.AttackTarget(targetMob.DBId);
-                            //Thread.Sleep(100);
-                            //GameData.Player.CastSpellOnTarget(targetMob.DBId, 0x211);
-                            //Thread.Sleep(100);
-                            GameData.Player.CastSpellOnTarget(targetMob.DBId, 0x210);
-                            Thread.Sleep(3800);
-                            //GameData.Player.AttackTarget(targetMob.DBId);
-                            //Thread.Sleep(100);
-                            if(targetMob.HP < 0)
+                            if (GameData.Player.CurrentAnimation == 0) // When standing - just attack
+                            {
+                                GameData.Player.AttackTarget(targetMob.DBId);
+                                Thread.Sleep(300);
+                                if (GameData.Player.CurrentAnimation == 0)
+                                {
+                                    // cant reach target
+                                    for (int x = 0; x < 10; x++)
+                                    {
+                                        GameData.Player.AttackTarget(targetMob.DBId);
+                                        Thread.Sleep(100);
+                                        if (GameData.Player.CurrentAnimation != 0)
+                                        {
+                                            break;
+                                        }
+                                    }
+                                    if (GameData.Player.CurrentAnimation == 0)
+                                    {
+                                        // ignore target
+                                        GameData.Player.Targets.Remove(GameData.Player.Targets[i]);
+                                        i--;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            foreach (var skill in GameData.Player.Skills)
+                            {
+                                if (skill.Enabled && skill.ManaCost < GameData.Player.MP && !skill.IsOnCooldown)
+                                {
+                                    // Get Targets in Range for AOE to not kill myself
+                                    if (skill.IsAOE)
+                                    {
+                                        var mobsInRange = mobs.Count(x => x.HP > 0 && Vector2D.CalculateDistance(GameData.Player.PosX, GameData.Player.PosY, x.PosX, x.PosY) < skill.Range);
+                                        if (mobsInRange == 0 || mobsInRange > 2)
+                                            continue;
+                                    }
+                                    if (skill.IsAOE)
+                                        GameData.Player.CastSpellOnMySelf(skill.Slot);
+                                    else
+                                        GameData.Player.CastSpellOnTarget(targetMob.DBId, skill.Slot);
+                                    break;
+                                }
+                            }
+                            while (
+                                (GameData.Player.CurrentAnimation == Models.Logic.Animation.ExecutingSkill || // while executing the skill
+                                GameData.Player.CurrentAnimation == Models.Logic.Animation.PrepareExecutingSkill) &&
+                                (GameData.Player.CurrentAnimation != Models.Logic.Animation.Stand || // and not standing or basic attacking
+                                GameData.Player.CurrentAnimation != Models.Logic.Animation.Attack)
+                                )
+                            {
+                                Thread.Sleep(500);
+                            }
+                            GameData.Player.WaitingForSkillExecution = false;
+
+
+                            if (targetMob.HP < 0)
                             {
                                 GameData.Player.Targets.Remove(GameData.Player.Targets[i]);
                                 i--;
                             }
                         }
-                        
+
                     }
                 }
                 Thread.Sleep(10);

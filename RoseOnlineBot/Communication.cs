@@ -77,7 +77,7 @@ namespace RoseOnlineBot
             var lastPackages = new List<byte[]>();
             while (true)
             {
-                
+
                 byte[] _buffer = new byte[BUFFER_SIZE];
                 var bytesRead = pipeServer.Read(_buffer, 0, _buffer.Length);
                 byte[] subsetArray = new byte[bytesRead];
@@ -97,6 +97,15 @@ namespace RoseOnlineBot
                     nextPacketCmd = BitConverter.ToInt16(subsetArray.Skip(2).Take(2).ToArray());
                     if (!actionsList.Contains((uint)nextPacketCmd))
                         actionsList.Add((uint)nextPacketCmd);
+
+                    if (nextPacketCmd == 0x716)
+                    {
+
+                    }
+                    if (nextPacketCmd == 0x718)
+                    {
+
+                    }
                 }
                 else if (hasHeader == true)
                 {
@@ -116,15 +125,16 @@ namespace RoseOnlineBot
                         var defenderObjectIdx = BitConverter.ToUInt16(subsetArray.Skip(2).Take(2).ToArray());
                         var amount = BitConverter.ToInt32(subsetArray.Skip(4).Take(4).ToArray());
                         var flags = BitConverter.ToSingle(subsetArray.Skip(8).Take(4).ToArray());
-                        if(attackerObjectIdx == GameData.Player.DBId)
-                        { 
+                        if (attackerObjectIdx == GameData.Player.DBId)
+                        {
                             // i am attacker
                             var mob = GameData.Player.GetMobs().FirstOrDefault(x => x.DBId == defenderObjectIdx);
-                            if(mob != null && !GameData.Player.Targets.Contains(mob.Id))
+                            if (mob != null && !GameData.Player.Targets.Contains(mob.Id))
                             {
                                 GameData.Player.Targets.Add(mob.Id);
                             }
-                        } else if (defenderObjectIdx == GameData.Player.DBId)
+                        }
+                        else if (defenderObjectIdx == GameData.Player.DBId)
                         {
                             // i am defender
                             var mob = GameData.Player.GetMobs().FirstOrDefault(x => x.DBId == attackerObjectIdx);
@@ -176,7 +186,7 @@ namespace RoseOnlineBot
                         var slotNo = BitConverter.ToUInt32(subsetArray.Skip(56).Take(4).ToArray());
                         /*pickupTime*/
                         //this.skip(14);
-                        var timeRemaining = BitConverter.ToInt32(subsetArray.Skip(72).Take(4).ToArray()); 
+                        var timeRemaining = BitConverter.ToInt32(subsetArray.Skip(72).Take(4).ToArray());
                         var moveLimits = BitConverter.ToUInt16(subsetArray.Skip(76).Take(2).ToArray());
                         var bindOnAcquire = subsetArray.Skip(78).Take(1);
                         var bindOnEquipUse = subsetArray.Skip(79).Take(1);
@@ -190,18 +200,38 @@ namespace RoseOnlineBot
                             Thread.Sleep(100);
                         }
                     }
+                    else if (nextPacketCmd == 0x7b5)
+                    {
+                    }
+                    else if (nextPacketCmd == 0x7bb)
+                    {
+                    }
+                    else if (nextPacketCmd == 0x865)
+                    {
+                        var skillId = BitConverter.ToUInt16(subsetArray.Skip(0).Take(2).ToArray());
+                        var matchingSkill = GameData.Player.Skills.FirstOrDefault(x => x.Ids.Any(y => y == skillId));
+                        if (matchingSkill != null)
+                        {
+                            matchingSkill.LastExecution = DateTime.Now;
+                            GameData.Player.WaitingForSkillExecution = false;
+                        }
+                    }
+                    else if (nextPacketCmd == 0x716)
+                    {
+                        // inventory data
+                    }
                     else
                     {
 
                     }
-                    
+
                 }
                 else
                 {
                     // no packet without header should exist?
 
                 }
-                
+
 
                 //int bytesRead = 0;
 

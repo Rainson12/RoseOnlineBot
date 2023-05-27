@@ -1,4 +1,5 @@
-﻿using RoseOnlineBot.Utils;
+﻿using RoseOnlineBot.Models.Logic;
+using RoseOnlineBot.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,10 +12,11 @@ namespace RoseOnlineBot.Business
     {
         public Player()
         {
-            var firstPtr = GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.EngineBase);
-            DBId = GameData.Handle.ReadMemory<UInt16>(firstPtr + Id * 2 + 0x0002000A);
-            NPCBase = GameData.Handle.ReadMemory<IntPtr>(firstPtr + Id * 8 + 0x00022078);
-
+            Skills.Add(new Skill() { CooldownInMilliseconds = 10000, Slot = 1, ManaCost = 12, Ids = new Int16[] { 440, 441, 442, 443, 444 }, Range = 600, IsAOE = true });
+            Skills.Add(new Skill() { CooldownInMilliseconds = 10000, Slot = 2, ManaCost = 7, Ids = new Int16[] { 450, 451, 452, 453, 454 }, Range = 600, Enabled = false, IsAOE = true });
+            Skills.Add(new Skill() { CooldownInMilliseconds = 10000, Slot = 3, ManaCost = 7, Ids = new Int16[] { 445, 446, 447, 448, 449 }, Range = 600, Enabled = false, IsAOE = true });
+            Skills.Add(new Skill() { CooldownInMilliseconds = 3000, Slot = 0x210, ManaCost = 9, Ids = new Int16[] { 101 }, Range = 300 });
+            Skills.Add(new Skill() { CooldownInMilliseconds = 6000, Slot = 0x211, ManaCost = 9, Ids = new Int16[] { 102 }, Range = 1600, Enabled = false });
         }
         private IntPtr Base
         {
@@ -24,16 +26,33 @@ namespace RoseOnlineBot.Business
             }
         }
 
-        private IntPtr NPCBase { get; }
-        public UInt16 DBId { get; set; }
+        public bool WaitingForSkillExecution { get; set; } = false;
+        public List<Skill> Skills { get; set; } = new List<Skill>();
+
+        public UInt16 DBId
+        {
+            get
+            {
+                var firstPtr = GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.EngineBase);
+                return GameData.Handle.ReadMemory<UInt16>(firstPtr + Id * 2 + 0x0002000A);
+            }
+        }
         public Int16 Id => GameData.Handle.ReadMemory<Int16>(Base + 0x1c);
-        public Int32 HP => GameData.Handle.ReadMemory<Int16>(NPCBase + 0x28 + 0x3ac0);
-        public Int32 MAXHP => GameData.Handle.ReadMemory<Int16>(NPCBase + 0x4620);
-        public Int32 MP => GameData.Handle.ReadMemory<Int16>(NPCBase + 0x3AEC);
-        public Int32 MAXMP => GameData.Handle.ReadMemory<Int16>(NPCBase + 0x4624);
+        public Int32 HP => GameData.Handle.ReadMemory<Int16>(Base + 0x28 + 0x3ac0);
+        public Int32 MAXHP => GameData.Handle.ReadMemory<Int16>(Base + 0x4620);
+        public Int32 MP => GameData.Handle.ReadMemory<Int16>(Base + 0x3AEC);
+        public Int32 MAXMP => GameData.Handle.ReadMemory<Int16>(Base + 0x4624);
         public Single PosX => GameData.Handle.ReadMemory<Single>(Base + 0x10);
         public Single PosY => GameData.Handle.ReadMemory<Single>(Base + 0x14);
         public Single PosZ => GameData.Handle.ReadMemory<Single>(Base + 0x18);
+        public Animation CurrentAnimation
+        {
+            get
+            {
+                var anim = GameData.Handle.ReadMemory<byte>(Base + 0x58);
+                return (Animation)anim;
+            }
+        }
 
         public List<int> Targets = new List<int>();
 
@@ -99,20 +118,30 @@ namespace RoseOnlineBot.Business
         {
             byte[] bCoordX = BitConverter.GetBytes(x);
             byte[] bCoordY = BitConverter.GetBytes(y);
-            var currentZ = Convert.ToUInt16(PosZ);
-            byte[] bCoordZ =  BitConverter.GetBytes(currentZ);
+            var currentZ = Convert.ToInt16(PosZ);
+            byte[] bCoordZ = BitConverter.GetBytes(currentZ);
             GameData.SendMessage(new byte[] { 0x12, 0x00, 0x9a, 0x07, 0xd1, 0x58, 0x00, 0x00, bCoordX[0], bCoordX[1], bCoordX[2], bCoordX[3], bCoordY[0], bCoordY[1], bCoordY[2], bCoordY[3], bCoordZ[0], bCoordZ[1] });
         }
-        public void CastSpellOnTarget(UInt16 targetId, Int16 skillId)
+        public void CastSpellOnTarget(UInt16 targetId, Int16 slotNo)
         {
+            WaitingForSkillExecution = true;
             Int16 action = 0x7b3;
             var actionAsByte = BitConverter.GetBytes(action);
 
             byte[] target = BitConverter.GetBytes(targetId);
-            var skillTest = BitConverter.ToInt16(new byte[]{ 0x10, 0x02});
+            var skillTest = BitConverter.ToInt16(new byte[] { 0x10, 0x02 });
 
-            var skillBytes = BitConverter.GetBytes(skillId);
+            var skillBytes = BitConverter.GetBytes(slotNo);
             GameData.SendMessage(new byte[] { 0xa, 00, actionAsByte[0], actionAsByte[1], 0xd1, 0x58, target[0], target[1], skillBytes[0], skillBytes[1] });
+        }
+        public void CastSpellOnMySelf(Int16 slotNo)
+        {
+            WaitingForSkillExecution = true;
+            Int16 action = 0x7b2;
+            var actionAsByte = BitConverter.GetBytes(action);
+
+            var skillBytes = BitConverter.GetBytes(slotNo);
+            GameData.SendMessage(new byte[] { 0x8, 00, actionAsByte[0], actionAsByte[1], 0xd1, 0x58, skillBytes[0], skillBytes[1] });
         }
 
         public void ToggleSit()
@@ -154,6 +183,32 @@ namespace RoseOnlineBot.Business
 
             byte[] itemIdAsBytes = BitConverter.GetBytes(itemId);
             GameData.SendMessage(new byte[] { 0x9, 00, actionAsByte[0], actionAsByte[1], 0xd1, 0x58, 0x00, itemIdAsBytes[0], itemIdAsBytes[1] });
+        }
+
+        public void SendJoinZone()
+        {
+            GameData.SendMessage(new byte[] { 0x50, 0x00, 0x0b, 0x07, 0xd1, 0x58, 0x48, 0x00, 0x08, 0xe5, 0xa1, 0x02, 0x12, 0x20, 0x64, 0x38, 0x62, 0x31, 0x33, 0x61, 0x35, 0x62, 0x39, 0x36, 0x36, 0x34, 0x35, 0x30, 0x62, 0x64, 0x31, 0x35, 0x36, 0x31, 0x35, 0x31, 0x32, 0x30, 0x63, 0x36, 0x35, 0x34, 0x37, 0x38, 0x61, 0x35, 0x1a, 0x20, 0x85, 0x85, 0x2c, 0xa7, 0xcc, 0xf6, 0x1a, 0x1f, 0x51, 0x63, 0xb2, 0x24, 0x51, 0xb0, 0x11, 0x11, 0x16, 0x96, 0x76, 0x02, 0x81, 0xe7, 0x2f, 0x36, 0x88, 0x31, 0xba, 0xfc, 0x0d, 0x60, 0xc0, 0xe3 });
+
+
+
+            Int16 action4 = 0x715;
+            var actionAsByte4 = BitConverter.GetBytes(action4);
+            GameData.SendMessage(new byte[] { 0x11, 00, actionAsByte4[0], actionAsByte4[1], 0xd1, 0x58, 0x00, 0xee, 0x82, 0x52, 0x61, 0x69,0x6e,0x73,0x6f,0x6e,0x00 });
+
+
+
+            Int16 action2 = 0x7e5;
+            var actionAsByte2 = BitConverter.GetBytes(action2);
+            GameData.SendMessage(new byte[] { 0x7, 00, actionAsByte2[0], actionAsByte2[1], 0xd1, 0x58, 0x03 });
+
+
+            Int16 action = 0x753;
+            var actionAsByte = BitConverter.GetBytes(action);
+            GameData.SendMessage(new byte[] { 0x8, 00, actionAsByte[0], actionAsByte[1], 0xd1, 0x58, 0x03, 0x00 });
+
+            Int16 action3 = 0x860;
+            var actionAsByte3 = BitConverter.GetBytes(action3);
+            GameData.SendMessage(new byte[] { 0x8, 00, actionAsByte3[0], actionAsByte3[1], 0xd1, 0x58, 0xe0, 0x86 });
         }
 
     }

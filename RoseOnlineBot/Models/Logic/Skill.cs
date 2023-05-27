@@ -8,9 +8,14 @@ namespace RoseOnlineBot.Models.Logic
 {
     internal class Skill
     {
-        public int Id { get; set; }
+        public Int16[] Ids { get; set; }
+        public float Range { get; set; }
+        public bool Enabled { get; set; } = true;
+        public bool IsAOE { get; set; } = false;
+        public Int16 Slot { get; set; }
+        public int ManaCost { get; set; }
         public int CooldownInMilliseconds { get; set; }
         public DateTime? LastExecution { get; set; }
-        public bool IsOnCooldown => LastExecution != null ? LastExecution.Value.AddMilliseconds(CooldownInMilliseconds) < DateTime.Now : true;
+        public bool IsOnCooldown => LastExecution != null ? LastExecution.Value.AddMilliseconds(CooldownInMilliseconds) > DateTime.Now : false;
     }
 }
