@@ -302,5 +302,10 @@ namespace RoseOnlineBot
                 Thread.Sleep(10);
             }
         }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            GameData.Player.GetInventory();
+        }
     }
 }

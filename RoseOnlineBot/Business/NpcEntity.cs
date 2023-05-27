@@ -24,7 +24,7 @@ namespace RoseOnlineBot.Business
         public NpcEntity(short npcId)
         {
             Id = npcId;
-            var firstPtr = GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.EngineBase);
+            var firstPtr = GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.EngineBaseOffset);
             BaseAddress = GameData.Handle.ReadMemory<IntPtr>(firstPtr + npcId * 8 + 0x00022078);
 
             // db id

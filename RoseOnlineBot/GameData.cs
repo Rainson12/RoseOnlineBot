@@ -15,10 +15,11 @@ namespace RoseOnlineBot
     internal static class GameData
     {
         public static IntPtr BaseAddress { get; set; }
-        public static IntPtr CurrentCharacterBase { get; set; }
+        public static IntPtr CurrentCharacterBaseOffset { get; set; }
 
-        public static IntPtr CurrentTargetBase { get; set; }
-        public static IntPtr EngineBase { get; set; }
+        public static IntPtr InventoryRendererOffset { get; set; }
+        public static IntPtr CurrentTargetBaseOffset { get; set; }
+        public static IntPtr EngineBaseOffset { get; set; }
         public static Communication Pipe { get; set; }
         public static Memory Handle { get; set; }
         public static Injector Injector { get; set; }
@@ -46,17 +47,22 @@ namespace RoseOnlineBot
             var patternsInfo = PatternFinder.Find(Handle, BaseAddress, procSize);
             if (patternsInfo.FirstOrDefault(x => x.Key == "Character Base Address Function") is KeyValuePair<string, int> characterPattern)
             {
-                CurrentCharacterBase= GamePointerHelper.GetCharacterBaseFromPatternResult(Handle, BaseAddress, characterPattern.Value);
+                CurrentCharacterBaseOffset= GamePointerHelper.GetCharacterBaseOffsetFromPatternResult(Handle, BaseAddress, characterPattern.Value);
             }
 
             if (patternsInfo.FirstOrDefault(x => x.Key == "Engine Base") is KeyValuePair<string, int> entityHelperPattern)
             {
-                EngineBase = GamePointerHelper.GetEngineBaseFromPatternResult(Handle, BaseAddress, entityHelperPattern.Value);
+                EngineBaseOffset = GamePointerHelper.GetEngineBaseOffsetFromPatternResult(Handle, BaseAddress, entityHelperPattern.Value);
             }
             if (patternsInfo.FirstOrDefault(x => x.Key == "Current Target Id") is KeyValuePair<string, int> currentTargetIdPattern)
             {
-                CurrentTargetBase = GamePointerHelper.GetCurrentTargetFromPatternResult(Handle, BaseAddress, currentTargetIdPattern.Value);
+                CurrentTargetBaseOffset = GamePointerHelper.GetCurrentTargetOffsetFromPatternResult(Handle, BaseAddress, currentTargetIdPattern.Value);
             }
+            if (patternsInfo.FirstOrDefault(x => x.Key == "InventoryRenderer") is KeyValuePair<string, int> inventoryRendererPattern)
+            {
+                InventoryRendererOffset = GamePointerHelper.GetInventoryRendererOffsetFromPatternResult(Handle, BaseAddress, inventoryRendererPattern.Value);
+            }
+            
             Player = new Player();
             IsInitialized = true;
         }

@@ -22,7 +22,7 @@ namespace RoseOnlineBot.Business
         {
             get
             {
-                return GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.CurrentCharacterBase);
+                return GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.CurrentCharacterBaseOffset);
             }
         }
 
@@ -33,10 +33,12 @@ namespace RoseOnlineBot.Business
         {
             get
             {
-                var firstPtr = GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.EngineBase);
+                var firstPtr = GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.EngineBaseOffset);
                 return GameData.Handle.ReadMemory<UInt16>(firstPtr + Id * 2 + 0x0002000A);
             }
         }
+        public IntPtr InventoryPtr => Base + 0x3D58;
+
         public Int16 Id => GameData.Handle.ReadMemory<Int16>(Base + 0x1c);
         public Int32 HP => GameData.Handle.ReadMemory<Int16>(Base + 0x28 + 0x3ac0);
         public Int32 MAXHP => GameData.Handle.ReadMemory<Int16>(Base + 0x4620);
@@ -60,12 +62,12 @@ namespace RoseOnlineBot.Business
         {
             get
             {
-                var firstPointer = GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.CurrentTargetBase);
+                var firstPointer = GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.CurrentTargetBaseOffset);
                 return GameData.Handle.ReadMemory<Int16>(firstPointer + 0x8);
             }
             set
             {
-                var firstPointer = GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.CurrentTargetBase);
+                var firstPointer = GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.CurrentTargetBaseOffset);
                 GameData.Handle.WriteMemory<Int16>(firstPointer + 0x8, value);
             }
         }
@@ -74,7 +76,7 @@ namespace RoseOnlineBot.Business
         {
             get
             {
-                var firstPointer = GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.EngineBase);
+                var firstPointer = GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.EngineBaseOffset);
                 var firstMobAddress = GameData.Handle.ReadMemory<IntPtr>(firstPointer + 0x22050);
 
                 Int16 x = 0;
@@ -94,7 +96,7 @@ namespace RoseOnlineBot.Business
         public List<NpcEntity> GetMobs()
         {
             List<NpcEntity> mobs = new List<NpcEntity>();
-            var firstPointer = GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.EngineBase);
+            var firstPointer = GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.EngineBaseOffset);
             IntPtr firstMobAddress = GameData.Handle.ReadMemory<IntPtr>(firstPointer + 0x22050);
 
             int x = 0;
@@ -209,6 +211,45 @@ namespace RoseOnlineBot.Business
             Int16 action3 = 0x860;
             var actionAsByte3 = BitConverter.GetBytes(action3);
             GameData.SendMessage(new byte[] { 0x8, 00, actionAsByte3[0], actionAsByte3[1], 0xd1, 0x58, 0xe0, 0x86 });
+        }
+
+        public void GetInventory()
+        {
+            var ptr = GameData.Handle.ReadMemory<nint>(GameData.BaseAddress + GameData.InventoryRendererOffset);
+            var ptr2 = ptr + 0x28;
+            var itemsCnt = 0;
+
+            int characterTab = 1; // 2cnd tab
+            var itemIndex = 0;
+
+            var startIndex = 0x1E * characterTab;
+            var offset = (startIndex + itemIndex) * 0x168;
+            offset = offset + 0x2D78;
+            var itemBaseAddress = ptr2 + offset; // this is equal to rcx at trose.exe+216D73 breakpoint
+
+            var ptr4 = GameData.Handle.ReadMemory<nint>(itemBaseAddress + 0x108);
+            var ptr5 = GameData.Handle.ReadMemory<nint>(ptr4 + 0xF8);
+            var itemId = GameData.Handle.ReadMemory<Int16>(ptr5 + 0x38);
+            
+            var someId = GameData.Handle.ReadMemory<IntPtr>(InventoryPtr + itemId * 0x8 + 0x48);
+
+
+            // now get the item base address or so at trose.exe + 10A0F0 (ptr5 = rbx,  rax = 1, rcx = InventoryPtr, some id = rdx, rdi = startIndex?)
+
+
+            // missing part
+            var amount = GameData.Handle.ReadMemory<Int16>(itemBaseAddress + 0x20);
+
+            //while (true)
+            //{
+            //    var a =  GameData.Handle.ReadMemory<UInt64>(InventoryPtr + itemsCnt * 8 + 0x48);
+            //    if(a == 0xc3d7a0)
+            //    {
+            //        break;
+            //    }
+            //    itemsCnt++;
+            //}
+
         }
 
     }
