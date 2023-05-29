@@ -13,7 +13,15 @@ namespace RoseOnlineBot.Business
         public float PosY => GameData.Handle.ReadMemory<Single>(BaseAddress + 0x14);
         public float PosZ => GameData.Handle.ReadMemory<Single>(BaseAddress + 0x18);
         public byte Type { get; }
-        bool Exists { get; } = false;
+        public Int16 NpcStbId { get; set; }
+        public bool Exists
+        {
+            get
+            {
+                var firstPtr = GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.EngineBaseOffset);
+                return GameData.Handle.ReadMemory<IntPtr>(firstPtr + Id * 8 + 0x00022078) != 0;
+            }
+        }
 
         public short Id { get; } = 0;
         public int HP => GameData.Handle.ReadMemory<Int32>(BaseAddress + 0xE8);
@@ -26,13 +34,11 @@ namespace RoseOnlineBot.Business
             Id = npcId;
             var firstPtr = GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.EngineBaseOffset);
             BaseAddress = GameData.Handle.ReadMemory<IntPtr>(firstPtr + npcId * 8 + 0x00022078);
-
             // db id
-            DBId = GameData.Handle.ReadMemory<UInt16>(firstPtr + npcId*2 + 0x0002000A);
-
+            DBId = GameData.Handle.ReadMemory<UInt16>(firstPtr + npcId * 2 + 0x0002000A);
+            NpcStbId = GameData.Handle.ReadMemory<Int16>(BaseAddress + 0x2c0);
             if (BaseAddress != 0x00)
             {
-                Exists = true;
                 Type = GameData.Handle.ReadMemory<byte>(BaseAddress);
 
                 if (Type == 0x40)
@@ -41,23 +47,24 @@ namespace RoseOnlineBot.Business
                     if (mobId == npcId)
                     {
                         int hp = GameData.Handle.ReadMemory<Int32>(BaseAddress + 0xE8);
-                        int max_hp = GameData.Handle.ReadMemory<Int32>(BaseAddress + 0xE8+8);
+                        int max_hp = GameData.Handle.ReadMemory<Int32>(BaseAddress + 0xE8 + 8);
                     }
 
                 }
-                else if(Type == 0xa0)
+                else if (Type == 0xa0)
                 {
                     // player or myself?
                 }
-                else if(Type == 0x50)
+                else if (Type == 0x50)
                 {
                     // friendly npc?
                 }
-                else if(Type == 0x60)
+                else if (Type == 0x60)
                 {
                     // friendly npc?
                 }
-                else{
+                else
+                {
                     //var buffer = GameData.Handle.ReadMemoryArray<byte>(DataBaseAddress, 200);
                     //string hexString = BitConverter.ToString(buffer).Replace("-", " ");
                     //File.WriteAllText("other_" + mobId + ".txt", hexString);

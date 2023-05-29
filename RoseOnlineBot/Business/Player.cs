@@ -3,6 +3,7 @@ using RoseOnlineBot.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,7 +16,9 @@ namespace RoseOnlineBot.Business
             Skills.Add(new Skill() { CooldownInMilliseconds = 10000, Slot = 1, ManaCost = 12, Ids = new Int16[] { 440, 441, 442, 443, 444 }, Range = 600, IsAOE = true });
             Skills.Add(new Skill() { CooldownInMilliseconds = 10000, Slot = 2, ManaCost = 7, Ids = new Int16[] { 450, 451, 452, 453, 454 }, Range = 600, Enabled = false, IsAOE = true });
             Skills.Add(new Skill() { CooldownInMilliseconds = 10000, Slot = 3, ManaCost = 7, Ids = new Int16[] { 445, 446, 447, 448, 449 }, Range = 600, Enabled = false, IsAOE = true });
-            Skills.Add(new Skill() { CooldownInMilliseconds = 3000, Slot = 0x210, ManaCost = 9, Ids = new Int16[] { 101 }, Range = 300 });
+            //Skills.Add(new Skill() { CooldownInMilliseconds = 3000, Slot = 0x210, ManaCost = 9, Ids = new Int16[] { 101 }, Range = 300 }); 
+            Skills.Add(new Skill() { CooldownInMilliseconds = 4500, Slot = 5, ManaCost = 14, Ids = new Int16[] { 430,431,432,433,434 }, Range = 300 }); // spear strike
+            //Skills.Add(new Skill() { CooldownInMilliseconds = 4500, Slot = 0x211, ManaCost = 9, Ids = new Int16[] { 435, 436, 437, 438, 439 }, Range = 300 }); // piercing stab
             Skills.Add(new Skill() { CooldownInMilliseconds = 6000, Slot = 0x211, ManaCost = 9, Ids = new Int16[] { 102 }, Range = 1600, Enabled = false });
         }
         private IntPtr Base
@@ -98,6 +101,7 @@ namespace RoseOnlineBot.Business
             List<NpcEntity> mobs = new List<NpcEntity>();
             var firstPointer = GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.EngineBaseOffset);
             IntPtr firstMobAddress = GameData.Handle.ReadMemory<IntPtr>(firstPointer + 0x22050);
+            Int16[] ignoreIdList = new Int16[] { 781, 782, 783, 784, 785, 786, 787, 788, 789, 790, 791, 792, 793, 794, 795, 796, 797, 798, 799, 800, 801, 802, 803, 804, 805, 806, 807, 808, 809, 810 }; //  summoned npcs like bonfires etc
 
             int x = 0;
             while (true)
@@ -105,7 +109,7 @@ namespace RoseOnlineBot.Business
                 IntPtr npcIdAddress = firstMobAddress + x * 4;
                 var npcId = GameData.Handle.ReadMemory<Int16>(npcIdAddress);
                 NpcEntity npc = new(npcId);
-                if (npc.Type == 0x40)
+                if (npc.Type == 0x40 && !ignoreIdList.Contains(npc.NpcStbId))
                 {
                     // only add mobs
                     mobs.Add(npc);
@@ -195,7 +199,7 @@ namespace RoseOnlineBot.Business
 
             Int16 action4 = 0x715;
             var actionAsByte4 = BitConverter.GetBytes(action4);
-            GameData.SendMessage(new byte[] { 0x11, 00, actionAsByte4[0], actionAsByte4[1], 0xd1, 0x58, 0x00, 0xee, 0x82, 0x52, 0x61, 0x69,0x6e,0x73,0x6f,0x6e,0x00 });
+            GameData.SendMessage(new byte[] { 0x11, 00, actionAsByte4[0], actionAsByte4[1], 0xd1, 0x58, 0x00, 0xee, 0x82, 0x52, 0x61, 0x69, 0x6e, 0x73, 0x6f, 0x6e, 0x00 });
 
 
 
@@ -213,44 +217,122 @@ namespace RoseOnlineBot.Business
             GameData.SendMessage(new byte[] { 0x8, 00, actionAsByte3[0], actionAsByte3[1], 0xd1, 0x58, 0xe0, 0x86 });
         }
 
-        public void GetInventory()
+        public Inventory GetInventory()
         {
-            var ptr = GameData.Handle.ReadMemory<nint>(GameData.BaseAddress + GameData.InventoryRendererOffset);
-            var ptr2 = ptr + 0x28;
-            var itemsCnt = 0;
+            Inventory inventory = new();
+            // get inventory address
+            var interfaceId = 0x1C;
+            var _rcx = GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.InventoryUIOffset + 0x400);
+            var _rax = GameData.Handle.ReadMemory<nint>(_rcx);
+            nint interfaceAddress = 0;
+            int cnt = 0;
+            if (_rcx != _rax)
+            {
+                do
+                {
+                    var r8_1 = GameData.Handle.ReadMemory<nint>(_rax + 0x10);
+                    interfaceAddress = r8_1;
+                    if (GameData.Handle.ReadMemory<nint>(r8_1 + 0x170) == interfaceId)
+                    {
+                        break;
+                    }
+                    _rax = GameData.Handle.ReadMemory<nint>(_rax);
+                    cnt++;
+                }
+                while (_rcx != _rax);
+            }
+            if (interfaceAddress == 0)
+            {
+                // error
+                return null;
+            }
+            var ptr2 = interfaceAddress + 0x28;
 
-            int characterTab = 1; // 2cnd tab
-            var itemIndex = 0;
 
-            var startIndex = 0x1E * characterTab;
-            var offset = (startIndex + itemIndex) * 0x168;
-            offset = offset + 0x2D78;
-            var itemBaseAddress = ptr2 + offset; // this is equal to rcx at trose.exe+216D73 breakpoint
+            for (int stashCnt = 0; stashCnt < 3; stashCnt++)
+            {
+                List<InventoryItem> stashItems = new();
+                for (int slot = 0; slot < 30; slot++)
+                {
+                    var startIndex = 0x1E * stashCnt;
+                    var offset = (startIndex + slot) * 0x168;
+                    offset = offset + 0x2D78;
+                    var pt3 = ptr2 + offset; // this is equal to rcx at trose.exe+216D73 breakpoint
 
-            var ptr4 = GameData.Handle.ReadMemory<nint>(itemBaseAddress + 0x108);
-            var ptr5 = GameData.Handle.ReadMemory<nint>(ptr4 + 0xF8);
-            var itemId = GameData.Handle.ReadMemory<Int16>(ptr5 + 0x38);
-            
-            var someId = GameData.Handle.ReadMemory<IntPtr>(InventoryPtr + itemId * 0x8 + 0x48);
+                    var ptr4 = GameData.Handle.ReadMemory<nint>(pt3 + 0x108);
+                    if (ptr4 != 0)
+                    {
+                        var ptr5 = GameData.Handle.ReadMemory<nint>(ptr4 + 0xF8);
+                        var itemId = GameData.Handle.ReadMemory<Int16>(ptr5 + 0x38); // index of first time item pickup?
+
+                        var itemNetworkPackageId = GameData.Handle.ReadMemory<IntPtr>(InventoryPtr + itemId * 0x8 + 0x48);
+                        var bytes = BitConverter.GetBytes(itemNetworkPackageId);
+
+                        // now get the item base address or so at trose.exe + 10A0F0 (ptr5 = rbx,  rax = 1, rcx = InventoryPtr, some id = rdx, rdi = startIndex?)
+                        // this shit was found when following the call from trose.exe + 10A108
+                        var arg1 = 0xCBF29CE484222325;
+                        ulong r9 = 0x100000001B3;
+                        ulong rax = bytes[1];
+                        ulong r8 = bytes[0] ^ arg1;
+                        r8 = r8 * r9;
+                        r8 = r8 ^ rax;
+
+                        rax = bytes[2];
+                        r8 = r8 * r9;
+                        r8 = r8 ^ rax;
+
+                        rax = bytes[3];
+                        r8 = r8 * r9;
+                        r8 = r8 ^ rax;
+
+                        rax = bytes[4];
+                        r8 = r8 * r9;
+                        r8 = r8 ^ rax;
+
+                        rax = bytes[5];
+                        r8 = r8 * r9;
+                        r8 = r8 ^ rax;
+
+                        rax = bytes[6];
+                        r8 = r8 * r9;
+                        r8 = r8 ^ rax;
+
+                        rax = bytes[7];
+                        r8 = r8 * r9;
+                        r8 = r8 ^ rax;
+
+                        rax = r8 * r9;
 
 
-            // now get the item base address or so at trose.exe + 10A0F0 (ptr5 = rbx,  rax = 1, rcx = InventoryPtr, some id = rdx, rdi = startIndex?)
+                        var andOffset = GameData.Handle.ReadMemory<IntPtr>(InventoryPtr + 0x38);
+                        ulong someOffset = rax & (ulong)andOffset;
+                        someOffset = someOffset * 2 * 2 * 2 * 2;
 
+                        var ptr6 = GameData.Handle.ReadMemory<IntPtr>(InventoryPtr + 0x20);
+                        var address = (ulong)ptr6 + someOffset;
 
-            // missing part
-            var amount = GameData.Handle.ReadMemory<Int16>(itemBaseAddress + 0x20);
+                        var ptr7 = GameData.Handle.ReadMemory<IntPtr>((IntPtr)address + 0x08);
 
-            //while (true)
-            //{
-            //    var a =  GameData.Handle.ReadMemory<UInt64>(InventoryPtr + itemsCnt * 8 + 0x48);
-            //    if(a == 0xc3d7a0)
-            //    {
-            //        break;
-            //    }
-            //    itemsCnt++;
-            //}
+                        var ptr8 = GameData.Handle.ReadMemory<IntPtr>((IntPtr)address);
+                        var ItemBase = ptr8 + 0x18;
 
+                        // missing part
+                        var amount = GameData.Handle.ReadMemory<Int16>((IntPtr)ItemBase + 0x20);
+                        var _itemId = GameData.Handle.ReadMemory<Int16>((IntPtr)ItemBase + 0x0C);
+                        stashItems.Add(new InventoryItem() { Amount = amount, DBId = (ulong)itemNetworkPackageId, ItemId = _itemId, Slot = slot });
+                    }
+                }
+                if (stashCnt == 0)
+                    inventory.EquipmentItems = stashItems;
+                else if (stashCnt == 1)
+                    inventory.Consumabes = stashItems;
+                else if (stashCnt == 2)
+                    inventory.Materials = stashItems;
+
+            }
+            return inventory;
         }
+        
 
     }
 }

@@ -84,7 +84,7 @@ namespace RoseOnlineBot
                 Array.Copy(_buffer, 0, subsetArray, 0, bytesRead);
 
                 string hexString = BitConverter.ToString(subsetArray).Replace("-", " ");
-                File.AppendAllLines("intercepted.log", new[] { hexString });
+                //File.AppendAllLines("intercepted.log", new[] { hexString });
 
                 if (!GameData.IsInitialized)
                 {
@@ -145,7 +145,11 @@ namespace RoseOnlineBot
                         }
                         continue;
                     }
-                    if (nextPacketCmd == 0x79a)
+                    else if (nextPacketCmd == 0x798)
+                    {
+                        // someone is getting attacked
+                    }
+                    else if (nextPacketCmd == 0x79a)
                     {
                         // current character moves
                         var objectIdx = BitConverter.ToInt16(subsetArray.Skip(0).Take(2).ToArray());
@@ -197,7 +201,7 @@ namespace RoseOnlineBot
                         if (ownerObjectIdx == GameData.Player.DBId || ownerObjectIdx == 0x00)
                         {
                             GameData.Player.PickupItem(objectIdx);
-                            Thread.Sleep(100);
+                            Thread.Sleep(300);
                         }
                     }
                     else if (nextPacketCmd == 0x7b5)
@@ -216,9 +220,169 @@ namespace RoseOnlineBot
                             GameData.Player.WaitingForSkillExecution = false;
                         }
                     }
+                    else if (nextPacketCmd == 0x7b2)
+                    {
+                        // cast self skill
+                    }
+                    else if (nextPacketCmd == 0x794)
+                    {
+                        // object remove
+                    }
+                    else if (nextPacketCmd == 0x873)
+                    {
+                        // ?? something with coordinates 
+                    }
+                    else if (nextPacketCmd == 0x797)
+                    {
+                        //object move to
+                    }
+                    else if (nextPacketCmd == 0x792)
+                    {
+                        //spawn mob
+                    }
+                    else if (nextPacketCmd == 0x862)
+                    {
+                        //???
+                    }
+                    else if (nextPacketCmd == 0x793)
+                    {
+                        // spawn char
+                    }
+                    else if (nextPacketCmd == 0x7b9)
+                    {
+                        // skill result
+                    }
                     else if (nextPacketCmd == 0x716)
                     {
                         // inventory data
+                    }
+                    else if (nextPacketCmd == 0x7b7)
+                    {
+                        //???
+                    }
+                    else if (nextPacketCmd == 0x796)
+                    {
+                        //???
+                    }
+                    else if (nextPacketCmd == 0x7a5)
+                    {
+                        // char equip item
+                    }
+                    else if (nextPacketCmd == 0x7b3)
+                    {
+                        // target skill
+                    }
+                    else if (nextPacketCmd == 0x770)
+                    {
+                        // can not reach target?
+                        //???
+                    }
+                    else if (nextPacketCmd == 0x7b6)
+                    {
+                        //handle skill effect
+                    }
+                    else if (nextPacketCmd == 0x700)
+                    {
+                        //???
+                    }
+                    else if (nextPacketCmd == 0x79e)
+                    {
+                        //levelup
+                    }
+                    else if (nextPacketCmd == 0x7cd)
+                    {
+
+                        // repair item?
+                    }
+                    else if (nextPacketCmd == 0x7ec)
+                    {
+
+                        // hp update
+                    }
+                    else if (nextPacketCmd == 0x7ce)
+                    {
+
+                        var itemKey = BitConverter.ToUInt64(subsetArray.Skip(0).Take(8).ToArray());
+                        var remainingDurabilityHits = BitConverter.ToUInt16(subsetArray.Skip(8).Take(2).ToArray());
+                        // durability update
+                        if (hexString.Contains("FD F4 07") || hexString.Contains("07 F4 FD"))
+                        {
+                            
+                            
+                        }
+                        // ???
+                    }
+                    else if (nextPacketCmd == 0x79b)
+                    {
+                        // set xp
+                    }
+                    else if (nextPacketCmd == 0x71b)
+                    {
+                        // quest stuff
+                    }
+                    else if (nextPacketCmd == 0x723)
+                    {
+                        // quest stuff
+                    }
+                    else if (nextPacketCmd == 0x730)
+                    {
+                        // quest stuff
+                    }
+                    else if (nextPacketCmd == 0x774)
+                    {
+                        // ???
+                    }
+                    else if (nextPacketCmd == 0x829)
+                    {
+                        // ???
+                    }
+                    else if (nextPacketCmd == 0x791)
+                    {
+                        // spawn npc
+                    }
+                    else if (nextPacketCmd == 0x7a7)
+                    {
+                        // some item stuff
+                    }
+                    else if (nextPacketCmd == 0x782)
+                    {
+                        // sitting
+                    }
+                    else if (nextPacketCmd == 0x7fc)
+                    {
+                        // ???
+                    }
+                    else if (nextPacketCmd == 0x7d5)
+                    {
+                        // ???
+                    }
+                    else if (nextPacketCmd == 0x7f5)
+                    {
+                        // ???
+                    }
+                    else if (nextPacketCmd == 0x867)
+                    {
+                        // ???
+                    }
+                    else if (nextPacketCmd == 0x7ed)
+                    {
+                        // ???
+                    }
+                    else if (nextPacketCmd == 0x783)
+                    {
+                        // ???
+                    }
+                    else if (nextPacketCmd == 0x7d4)
+                    {
+                        // ???
+                    }
+                    else if (nextPacketCmd == 0x7f9)
+                    {
+                        // ???
+                    }
+                    else if (nextPacketCmd == 0x7d2)
+                    {
+                        // ???
                     }
                     else
                     {

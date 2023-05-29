@@ -31,6 +31,7 @@
             this.btnStart = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.button2 = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
@@ -90,7 +91,6 @@
             this.label14 = new System.Windows.Forms.Label();
             this.lblEXPperHour = new System.Windows.Forms.Label();
             this.label13 = new System.Windows.Forms.Label();
-            this.button2 = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -152,6 +152,17 @@
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Main";
             // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(220, 384);
+            this.button2.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(88, 27);
+            this.button2.TabIndex = 12;
+            this.button2.Text = "Test Call";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
+            // 
             // button1
             // 
             this.button1.Location = new System.Drawing.Point(124, 384);
@@ -185,6 +196,7 @@
             this.richTextBox1.TabIndex = 0;
             this.richTextBox1.TabStop = false;
             this.richTextBox1.Text = "";
+            this.richTextBox1.TextChanged += new System.EventHandler(this.richTextBox1_TextChanged);
             // 
             // btnBrowseWaypoint
             // 
@@ -895,17 +907,6 @@
             this.label13.Size = new System.Drawing.Size(45, 15);
             this.label13.TabIndex = 0;
             this.label13.Text = "EXP/h: ";
-            // 
-            // button2
-            // 
-            this.button2.Location = new System.Drawing.Point(220, 384);
-            this.button2.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(88, 27);
-            this.button2.TabIndex = 12;
-            this.button2.Text = "Test Call";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // FormMain
             // 

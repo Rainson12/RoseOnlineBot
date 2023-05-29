@@ -20,6 +20,8 @@ namespace RoseOnlineBot
         public static IntPtr InventoryRendererOffset { get; set; }
         public static IntPtr CurrentTargetBaseOffset { get; set; }
         public static IntPtr EngineBaseOffset { get; set; }
+        public static IntPtr InventoryUIOffset { get; set; }
+
         public static Communication Pipe { get; set; }
         public static Memory Handle { get; set; }
         public static Injector Injector { get; set; }
@@ -62,7 +64,11 @@ namespace RoseOnlineBot
             {
                 InventoryRendererOffset = GamePointerHelper.GetInventoryRendererOffsetFromPatternResult(Handle, BaseAddress, inventoryRendererPattern.Value);
             }
-            
+            if (patternsInfo.FirstOrDefault(x => x.Key == "Inventory UI Base") is KeyValuePair<string, int> InventoryUIBasePattern)
+            {
+                InventoryUIOffset = GamePointerHelper.GetInventoryUIOffsetFromPatternResult(Handle, BaseAddress, InventoryUIBasePattern.Value);
+            }
+
             Player = new Player();
             IsInitialized = true;
         }

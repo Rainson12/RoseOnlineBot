@@ -49,5 +49,15 @@ namespace RoseOnlineBot.Utils
 
             return patternValue + offsetAsInt + readLength;
         }
+
+        internal static IntPtr GetInventoryUIOffsetFromPatternResult(Memory memoryHandle, nint baseAddress, int patternValue)
+        {
+            int readLength = 7;
+            var buffer = memoryHandle.ReadMemoryArray<byte>(baseAddress + patternValue, readLength);
+            var offsets = buffer.TakeLast(4).ToArray();
+            int offsetAsInt = BitConverter.ToInt32(offsets, 0);
+
+            return patternValue + offsetAsInt + readLength;
+        }
     }
 }

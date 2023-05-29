@@ -166,21 +166,22 @@ namespace RoseOnlineBot
 
         private void button1_Click(object sender, EventArgs e)
         {
-            //GameData.Player.SendJoinZone();
             var startingPointX = GameData.Player.PosX;
             var startingPointY = GameData.Player.PosY;
             while (true)
             {
+                // run back to starting point if too far away from it
                 if (Vector2D.CalculateDistance(startingPointX, startingPointY, GameData.Player.PosX, GameData.Player.PosY) >= 2000 && GameData.Player.Targets.Count == 0)
                 {
                     GameData.Player.Move(startingPointX, startingPointY);
-                    while (Vector2D.CalculateDistance(startingPointX, startingPointY, GameData.Player.PosX, GameData.Player.PosY) >= 100 && GameData.Player.Targets.Count == 0) // run back to starting point
+                    while (Vector2D.CalculateDistance(startingPointX, startingPointY, GameData.Player.PosX, GameData.Player.PosY) >= 100 && GameData.Player.Targets.Count == 0) 
                     {
                         Thread.Sleep(50);
                         if (GameData.Player.CurrentAnimation != Models.Logic.Animation.Run)
                             GameData.Player.Move(startingPointX, startingPointY);
                     }
                 }
+                // rest hp if too low
                 if (Convert.ToSingle(GameData.Player.HP) / Convert.ToSingle(GameData.Player.MAXHP) < 0.5f && GameData.Player.Targets.Count == 0)
                 {
                     while(GameData.Player.CurrentAnimation != Models.Logic.Animation.Stand)
@@ -206,32 +207,27 @@ namespace RoseOnlineBot
                 }
 
 
+                // find new target if currently doesnt have one
                 if (GameData.Player.Targets.Count == 0 && GameData.Player.FindNextTarget() is NpcEntity newTarget)
                 {
                     GameData.Player.Targets.Add(newTarget.Id);
                 }
 
+                // kill targets
                 for (int i = 0; i < GameData.Player.Targets.Count; i++)
                 {
                     var mobs = GameData.Player.GetMobs();
                     var targetMob = mobs.FirstOrDefault(x => x.Id == GameData.Player.Targets[i]);
-                    if (targetMob == null)
+                    if (targetMob == null || !targetMob.Exists || targetMob.HP < 0)
                     {
                         GameData.Player.Targets.Remove(GameData.Player.Targets[i]);
                         i--;
+                        continue;
                     }
                     else
                     {
-                        while (targetMob.HP > 0)
+                        while (targetMob.HP > 0 && targetMob.Exists)
                         {
-                            mobs = GameData.Player.GetMobs();
-                            targetMob = mobs.FirstOrDefault(x => x.Id == GameData.Player.Targets[i]);
-                            if (targetMob == null)
-                            {
-                                GameData.Player.Targets.Remove(GameData.Player.Targets[i]);
-                                i--;
-                                break;
-                            }
                             GameData.Player.TargetId = targetMob.Id;
 
                             if (GameData.Player.CurrentAnimation == 0) // When standing - just attack
@@ -262,7 +258,7 @@ namespace RoseOnlineBot
 
                             foreach (var skill in GameData.Player.Skills)
                             {
-                                if (skill.Enabled && skill.ManaCost < GameData.Player.MP && !skill.IsOnCooldown)
+                                if (skill.Enabled && skill.ManaCost < GameData.Player.MP && !skill.IsOnCooldown && targetMob.Exists)
                                 {
                                     // Get Targets in Range for AOE to not kill myself
                                     if (skill.IsAOE)
@@ -275,6 +271,7 @@ namespace RoseOnlineBot
                                         GameData.Player.CastSpellOnMySelf(skill.Slot);
                                     else
                                         GameData.Player.CastSpellOnTarget(targetMob.DBId, skill.Slot);
+                                    Thread.Sleep(50); // wait for the packet to be handled by the backend
                                     break;
                                 }
                             }
@@ -290,7 +287,7 @@ namespace RoseOnlineBot
                             GameData.Player.WaitingForSkillExecution = false;
 
 
-                            if (targetMob.HP < 0)
+                            if (!targetMob.Exists || targetMob.HP < 0)
                             {
                                 GameData.Player.Targets.Remove(GameData.Player.Targets[i]);
                                 i--;
@@ -305,7 +302,12 @@ namespace RoseOnlineBot
 
         private void button2_Click(object sender, EventArgs e)
         {
-            GameData.Player.GetInventory();
+            var data = GameData.Player.FindNextTarget();
+        }
+
+        private void richTextBox1_TextChanged(object sender, EventArgs e)
+        {
+            
         }
     }
 }
