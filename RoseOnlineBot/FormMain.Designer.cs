@@ -129,7 +129,7 @@
             this.tabControl1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(427, 453);
+            this.tabControl1.Size = new System.Drawing.Size(427, 498);
             this.tabControl1.TabIndex = 3;
             // 
             // tabPage1
@@ -148,13 +148,13 @@
             this.tabPage1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.tabPage1.Size = new System.Drawing.Size(419, 425);
+            this.tabPage1.Size = new System.Drawing.Size(419, 470);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Main";
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(220, 384);
+            this.button2.Location = new System.Drawing.Point(202, 384);
             this.button2.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(88, 27);
@@ -165,12 +165,12 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(124, 384);
+            this.button1.Location = new System.Drawing.Point(106, 384);
             this.button1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(88, 27);
             this.button1.TabIndex = 11;
-            this.button1.Text = "Run Bot";
+            this.button1.Text = "Start Bot";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
@@ -220,7 +220,7 @@
             // 
             // btnStop
             // 
-            this.btnStop.Location = new System.Drawing.Point(316, 384);
+            this.btnStop.Location = new System.Drawing.Point(298, 384);
             this.btnStop.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.btnStop.Name = "btnStop";
             this.btnStop.Size = new System.Drawing.Size(88, 27);
@@ -254,7 +254,7 @@
             this.tabPage2.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.tabPage2.Size = new System.Drawing.Size(419, 425);
+            this.tabPage2.Size = new System.Drawing.Size(419, 470);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Waypoints";
             // 
@@ -342,7 +342,7 @@
             this.tabPage3.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.tabPage3.Size = new System.Drawing.Size(419, 425);
+            this.tabPage3.Size = new System.Drawing.Size(419, 470);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Settings";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -743,7 +743,7 @@
             this.tabPage4.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.tabPage4.Size = new System.Drawing.Size(419, 425);
+            this.tabPage4.Size = new System.Drawing.Size(419, 470);
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "Info";
             this.tabPage4.UseVisualStyleBackColor = true;
@@ -913,11 +913,12 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.ClientSize = new System.Drawing.Size(451, 478);
+            this.ClientSize = new System.Drawing.Size(451, 524);
             this.Controls.Add(this.tabControl1);
             this.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.Name = "FormMain";
             this.Text = "FormMain";
+            this.Load += new System.EventHandler(this.FormMain_Load);
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();

@@ -22,7 +22,7 @@ namespace RoseOnlineBot
         {
             waypoints = new List<WayPoint>();
             timer = new System.Timers.Timer();
-            timer.Interval = 3000;
+            timer.Interval = 1000;
             timer.Elapsed += new ElapsedEventHandler(timer_Elapsed);
             timer.Start();
         }
@@ -30,30 +30,20 @@ namespace RoseOnlineBot
         {
             timer.Stop();
             WayPoint wayp = new WayPoint();
-            //wayp.waynr = waypoints.Count;
+            wayp.No = waypoints.Count;
 
-            // aktuelle Coordsauslesen
-            //wayp.coordX = charakter.x_pos;
-            //wayp.coordY = charakter.y_pos;
-            // wenn charr sich nicht bewegt hat
-            //if (waypoints.Count > 0 && waypoints[waypoints.Count - 1].coordX != wayp.coordX && waypoints[waypoints.Count - 1].coordY != wayp.coordY)
-            //{
-            //    waypoints.Add(wayp);
-            //    main.rtbWaypoints.Invoke(new MethodInvoker(delegate()
-            //    {
-            //        main.rtbWaypoints.Text += "X Coord: " + wayp.coordX.ToString() + " Y Coord: " + wayp.coordY + " Waypoint Number: " + wayp.waynr + "\r\n";
-            //    }));
-            //}
-            //else if (waypoints.Count == 0)
-            //{
-            //    waypoints.Add(wayp);
-            //    main.rtbWaypoints.Invoke(new MethodInvoker(delegate()
-            //    {
-            //        main.rtbWaypoints.Text += "X Coord: " + wayp.coordX.ToString() + " Y Coord: " + wayp.coordY + " Waypoint Number: " + wayp.waynr + "\r\n";
-            //    }));
-            //}
-            
-            //data.RecordedWaypoints = waypoints;
+            //aktuelle Coordsauslesen
+            wayp.CoordX = GameData.Player.PosX;
+            wayp.CoordY = GameData.Player.PosY;
+            //wenn charr sich nicht bewegt hat
+            if (waypoints.Count == 0 || (waypoints.Count > 0 && waypoints[waypoints.Count - 1].CoordX != wayp.CoordX && waypoints[waypoints.Count - 1].CoordY != wayp.CoordY))
+            {
+                waypoints.Add(wayp);
+                main.rtbWaypoints.Invoke(new MethodInvoker(delegate ()
+                {
+                    main.rtbWaypoints.Text += "X Coord: " + wayp.CoordX.ToString() + " Y Coord: " + wayp.CoordY + " Waypoint Number: " + wayp.No + "\r\n";
+                }));
+            }
             timer.Start();
         }
         public void stopRecordingWay()

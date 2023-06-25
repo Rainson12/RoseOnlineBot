@@ -129,18 +129,18 @@ namespace RoseOnlineBot
                         {
                             // i am attacker
                             var mob = GameData.Player.GetMobs().FirstOrDefault(x => x.DBId == defenderObjectIdx);
-                            if (mob != null && !GameData.Player.Targets.Contains(mob.Id))
+                            if (mob != null && !GameData.Player.Targets.Any(x => x.Id == mob.Id))
                             {
-                                GameData.Player.Targets.Add(mob.Id);
+                                GameData.Player.Targets.Add(mob);
                             }
                         }
                         else if (defenderObjectIdx == GameData.Player.DBId)
                         {
                             // i am defender
                             var mob = GameData.Player.GetMobs().FirstOrDefault(x => x.DBId == attackerObjectIdx);
-                            if (mob != null && !GameData.Player.Targets.Contains(mob.Id))
+                            if (mob != null && !GameData.Player.Targets.Any(x => x.Id == mob.Id))
                             {
-                                GameData.Player.Targets.Add(mob.Id);
+                                GameData.Player.Targets.Add(mob);
                             }
                         }
                         continue;
@@ -198,10 +198,11 @@ namespace RoseOnlineBot
                         var objectIdx = BitConverter.ToUInt16(subsetArray.Skip(84).Take(2).ToArray());
                         var ownerObjectIdx = BitConverter.ToUInt16(subsetArray.Skip(86).Take(2).ToArray());
 
-                        if (ownerObjectIdx == GameData.Player.DBId || ownerObjectIdx == 0x00)
+                        if (GameData.Player.PartyMode)
+                            GameData.Player.ItemsToPickup.Add(new Models.Logic.DroppedItem() { ItemNo = itemNo, PosX = posX, PosY= posY, ObjectId = objectIdx  });
+                        else if (ownerObjectIdx == GameData.Player.DBId || ownerObjectIdx == 0x00)
                         {
-                            GameData.Player.PickupItem(objectIdx);
-                            Thread.Sleep(300);
+                            GameData.Player.ItemsToPickup.Add(new Models.Logic.DroppedItem() { ItemNo = itemNo, PosX = posX, PosY = posY, ObjectId = objectIdx });
                         }
                     }
                     else if (nextPacketCmd == 0x7b5)
@@ -217,12 +218,20 @@ namespace RoseOnlineBot
                         if (matchingSkill != null)
                         {
                             matchingSkill.LastExecution = DateTime.Now;
-                            GameData.Player.WaitingForSkillExecution = false;
                         }
                     }
                     else if (nextPacketCmd == 0x7b2)
                     {
-                        // cast self skill
+                        var characterDbId = BitConverter.ToUInt16(subsetArray.Skip(0).Take(2).ToArray());
+                        if(GameData.Player.DBId == characterDbId)
+                        {
+                            var skillId = BitConverter.ToUInt16(subsetArray.Skip(2).Take(2).ToArray());
+                            var matchingSkill = GameData.Player.Skills.FirstOrDefault(x => x.Ids.Any(y => y == skillId));
+                            if (matchingSkill != null)
+                            {
+                                matchingSkill.LastExecution = DateTime.Now;
+                            }
+                        }
                     }
                     else if (nextPacketCmd == 0x794)
                     {

@@ -1,8 +1,10 @@
-﻿using System;
+﻿using RoseOnlineBot.Win32;
+using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -58,6 +60,20 @@ namespace RoseOnlineBot.Utils
             int offsetAsInt = BitConverter.ToInt32(offsets, 0);
 
             return patternValue + offsetAsInt + readLength;
+        }
+
+        internal static IntPtr EnableNoClip(Memory memoryHandle, nint baseAddress, int patternValue)
+        {
+            int readLength = 4;
+            var buffer = memoryHandle.ReadMemoryArray<byte>(baseAddress + patternValue+1, readLength);
+
+            var data = buffer.TakeLast(4).ToArray()!;
+            data[0] = 0x90;
+            data[1] = 0x90;
+            data[2] = 0xeb;
+            data[3] = data[3];
+            memoryHandle.WriteMemoryArray(baseAddress + patternValue+1, data);
+            return patternValue;
         }
     }
 }

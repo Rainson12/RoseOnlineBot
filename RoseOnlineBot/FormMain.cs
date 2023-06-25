@@ -17,6 +17,10 @@ using RoseOnlineBot.Utils;
 using ProcessMemoryUtilities.Managed;
 using GameOffsets;
 using RoseOnlineBot.Business;
+using RoseOnlineBot.Classes;
+using RoseOnlineBot.Models.Logic;
+using System.Xml.Serialization;
+using System.Runtime;
 
 namespace RoseOnlineBot
 {
@@ -117,16 +121,6 @@ namespace RoseOnlineBot
         RecordWaypoint rw;
         private void btnRecordWay_Click(object sender, EventArgs e)
         {
-            Process[] p = Process.GetProcessesByName("Trose");
-            Process myProcess = null;
-            if (p.Length > 1)
-            {
-                SelectProcess selectProcess = new SelectProcess(p);
-                if (selectProcess.ShowDialog() == DialogResult.OK)
-                    myProcess = Process.GetProcessById(int.Parse(selectProcess.comboBox1.SelectedItem.ToString()));
-            }
-            else if (p.Length > 0)
-                myProcess = p[0];
             rw = new RecordWaypoint(this);
             rw.startRecordingWay();
             btnStopRecord.Enabled = true;
@@ -141,6 +135,24 @@ namespace RoseOnlineBot
             btnRecordWay.Enabled = false;
         }
 
+        public static void saveWaypoints(List<WayPoint> Waypoints, string fileName)
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(List<WayPoint>));
+            TextWriter textWriter = new StreamWriter(fileName);
+            serializer.Serialize(textWriter, Waypoints);
+            textWriter.Close();
+        }
+        public static List<WayPoint> readWaypoints(string fileName)
+        {
+            XmlSerializer deserializer = new XmlSerializer(typeof(List<WayPoint>));
+            TextReader textReader = new StreamReader(fileName);
+            List<WayPoint> Waypoints;
+            Waypoints = (List<WayPoint>)deserializer.Deserialize(textReader);
+            textReader.Close();
+
+            return Waypoints;
+        }
+
         private void btnSaveWay_Click(object sender, EventArgs e)
         {
             string dateiname = "";
@@ -153,7 +165,7 @@ namespace RoseOnlineBot
             if (DialogResult.OK == diag.ShowDialog())
             {
                 dateiname = diag.FileName;
-                //memFunc.saveWaypoints(rw.waypoints, dateiname);
+                saveWaypoints(rw.waypoints, dateiname);
                 btnSaveWay.Enabled = false;
                 btnStopRecord.Enabled = false;
                 btnRecordWay.Enabled = true;
@@ -164,150 +176,53 @@ namespace RoseOnlineBot
 
 
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            var startingPointX = GameData.Player.PosX;
-            var startingPointY = GameData.Player.PosY;
-            while (true)
-            {
-                // run back to starting point if too far away from it
-                if (Vector2D.CalculateDistance(startingPointX, startingPointY, GameData.Player.PosX, GameData.Player.PosY) >= 2000 && GameData.Player.Targets.Count == 0)
-                {
-                    GameData.Player.Move(startingPointX, startingPointY);
-                    while (Vector2D.CalculateDistance(startingPointX, startingPointY, GameData.Player.PosX, GameData.Player.PosY) >= 100 && GameData.Player.Targets.Count == 0) 
-                    {
-                        Thread.Sleep(50);
-                        if (GameData.Player.CurrentAnimation != Models.Logic.Animation.Run)
-                            GameData.Player.Move(startingPointX, startingPointY);
-                    }
-                }
-                // rest hp if too low
-                if (Convert.ToSingle(GameData.Player.HP) / Convert.ToSingle(GameData.Player.MAXHP) < 0.5f && GameData.Player.Targets.Count == 0)
-                {
-                    while(GameData.Player.CurrentAnimation != Models.Logic.Animation.Stand)
-                    {
-                        Thread.Sleep(100);
-                    }
-                    
 
-                    GameData.Player.ToggleSit();
-                    Thread.Sleep(500);
-                    while (Convert.ToSingle(GameData.Player.HP) / Convert.ToSingle(GameData.Player.MAXHP) < 1.0f && GameData.Player.Targets.Count == 0)
-                    {
-                        if(GameData.Player.CurrentAnimation == Models.Logic.Animation.Stand)
-                        {
-                            GameData.Player.ToggleSit();
-                            Thread.Sleep(500);
-                        }
-                        Thread.Sleep(100);
-                    }
-                        
-                    GameData.Player.ToggleSit();
-                    Thread.Sleep(1000);
-                }
-
-
-                // find new target if currently doesnt have one
-                if (GameData.Player.Targets.Count == 0 && GameData.Player.FindNextTarget() is NpcEntity newTarget)
-                {
-                    GameData.Player.Targets.Add(newTarget.Id);
-                }
-
-                // kill targets
-                for (int i = 0; i < GameData.Player.Targets.Count; i++)
-                {
-                    var mobs = GameData.Player.GetMobs();
-                    var targetMob = mobs.FirstOrDefault(x => x.Id == GameData.Player.Targets[i]);
-                    if (targetMob == null || !targetMob.Exists || targetMob.HP < 0)
-                    {
-                        GameData.Player.Targets.Remove(GameData.Player.Targets[i]);
-                        i--;
-                        continue;
-                    }
-                    else
-                    {
-                        while (targetMob.HP > 0 && targetMob.Exists)
-                        {
-                            GameData.Player.TargetId = targetMob.Id;
-
-                            if (GameData.Player.CurrentAnimation == 0) // When standing - just attack
-                            {
-                                GameData.Player.AttackTarget(targetMob.DBId);
-                                Thread.Sleep(300);
-                                if (GameData.Player.CurrentAnimation == 0)
-                                {
-                                    // cant reach target
-                                    for (int x = 0; x < 10; x++)
-                                    {
-                                        GameData.Player.AttackTarget(targetMob.DBId);
-                                        Thread.Sleep(100);
-                                        if (GameData.Player.CurrentAnimation != 0)
-                                        {
-                                            break;
-                                        }
-                                    }
-                                    if (GameData.Player.CurrentAnimation == 0)
-                                    {
-                                        // ignore target
-                                        GameData.Player.Targets.Remove(GameData.Player.Targets[i]);
-                                        i--;
-                                        break;
-                                    }
-                                }
-                            }
-
-                            foreach (var skill in GameData.Player.Skills)
-                            {
-                                if (skill.Enabled && skill.ManaCost < GameData.Player.MP && !skill.IsOnCooldown && targetMob.Exists)
-                                {
-                                    // Get Targets in Range for AOE to not kill myself
-                                    if (skill.IsAOE)
-                                    {
-                                        var mobsInRange = mobs.Count(x => x.HP > 0 && Vector2D.CalculateDistance(GameData.Player.PosX, GameData.Player.PosY, x.PosX, x.PosY) < skill.Range);
-                                        if (mobsInRange == 0 || mobsInRange > 2)
-                                            continue;
-                                    }
-                                    if (skill.IsAOE)
-                                        GameData.Player.CastSpellOnMySelf(skill.Slot);
-                                    else
-                                        GameData.Player.CastSpellOnTarget(targetMob.DBId, skill.Slot);
-                                    Thread.Sleep(50); // wait for the packet to be handled by the backend
-                                    break;
-                                }
-                            }
-                            while (
-                                (GameData.Player.CurrentAnimation == Models.Logic.Animation.ExecutingSkill || // while executing the skill
-                                GameData.Player.CurrentAnimation == Models.Logic.Animation.PrepareExecutingSkill) &&
-                                (GameData.Player.CurrentAnimation != Models.Logic.Animation.Stand || // and not standing or basic attacking
-                                GameData.Player.CurrentAnimation != Models.Logic.Animation.Attack)
-                                )
-                            {
-                                Thread.Sleep(500);
-                            }
-                            GameData.Player.WaitingForSkillExecution = false;
-
-
-                            if (!targetMob.Exists || targetMob.HP < 0)
-                            {
-                                GameData.Player.Targets.Remove(GameData.Player.Targets[i]);
-                                i--;
-                            }
-                        }
-
-                    }
-                }
-                Thread.Sleep(10);
-            }
-        }
 
         private void button2_Click(object sender, EventArgs e)
         {
-            var data = GameData.Player.FindNextTarget();
+            //GameData.Player.TurnInQuest();
+            //GameData.Player.AcceptQuest();
+            //var data = GameData.Player.GetInventory();
+            //GameData.Player.UseItem(data.Consumabes[3].DBId);
+            var combat = new Combat();
+            var waypoints = readWaypoints(txWaypointPath.Text);
+            foreach(var waypoint in waypoints)
+            {
+                combat.MoveToCoordinate(waypoint.CoordX, waypoint.CoordY, false);
+            }
         }
 
         private void richTextBox1_TextChanged(object sender, EventArgs e)
         {
+
+        }
+
+        private void FormMain_Load(object sender, EventArgs e)
+        {
+
+        }
+
+
+        Thread combatThread = null;
+        private void button1_Click(object sender, EventArgs e)
+        {
+            if(combatThread == null)
+            {
+                if (GameData.Player.PartyMode == true)
+                    combatThread = new Thread(new ThreadStart(new Combat().PartyMode));
+                else
+                    combatThread = new Thread(new ThreadStart(new Combat().SingleTargetMode));
+                combatThread.Start();
+                button1.Text = "Stop";
+            }
+            else
+            {
+                combatThread.Interrupt();
+                button1.Text = "Start Bot";
+                combatThread = null;
+            }
             
         }
+
     }
 }

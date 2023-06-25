@@ -13,14 +13,17 @@ namespace RoseOnlineBot.Business
     {
         public Player()
         {
-            Skills.Add(new Skill() { CooldownInMilliseconds = 10000, Slot = 1, ManaCost = 12, Ids = new Int16[] { 440, 441, 442, 443, 444 }, Range = 600, IsAOE = true });
-            Skills.Add(new Skill() { CooldownInMilliseconds = 10000, Slot = 2, ManaCost = 7, Ids = new Int16[] { 450, 451, 452, 453, 454 }, Range = 600, Enabled = false, IsAOE = true });
-            Skills.Add(new Skill() { CooldownInMilliseconds = 10000, Slot = 3, ManaCost = 7, Ids = new Int16[] { 445, 446, 447, 448, 449 }, Range = 600, Enabled = false, IsAOE = true });
+            Skills.Add(new Skill() { CooldownInMilliseconds = 10000, Slot = 5, ManaCost = 13, Ids = new Int16[] { 440, 441, 442, 443, 444 }, Range = 600 + 300, IsAOE = true }); // fire sweep
+            Skills.Add(new Skill() { CooldownInMilliseconds = 10000, Slot = 7, ManaCost = 13, Ids = new Int16[] { 445, 446, 447, 448, 449 }, Range = 600 + 300, Enabled = true, IsAOE = true }); // windsweep
+            Skills.Add(new Skill() { CooldownInMilliseconds = 10000, Slot = 9, ManaCost = 7, Ids = new Int16[] { 450, 451, 452, 453, 454 }, Range = 600 + 300, Enabled = true, IsAOE = true }); // ice sweep
             //Skills.Add(new Skill() { CooldownInMilliseconds = 3000, Slot = 0x210, ManaCost = 9, Ids = new Int16[] { 101 }, Range = 300 }); 
-            Skills.Add(new Skill() { CooldownInMilliseconds = 4500, Slot = 5, ManaCost = 14, Ids = new Int16[] { 430,431,432,433,434 }, Range = 300 }); // spear strike
-            //Skills.Add(new Skill() { CooldownInMilliseconds = 4500, Slot = 0x211, ManaCost = 9, Ids = new Int16[] { 435, 436, 437, 438, 439 }, Range = 300 }); // piercing stab
+            Skills.Add(new Skill() { CooldownInMilliseconds = 4500, Slot = 6, ManaCost = 14, Ids = new Int16[] { 430, 431, 432, 433, 434 }, Range = 300 }); // spear strike
+            Skills.Add(new Skill() { CooldownInMilliseconds = 6000, Slot = 8, ManaCost = 18, Ids = new Int16[] { 435, 436, 437, 438, 439 }, Range = 300 }); // piercing stab
             Skills.Add(new Skill() { CooldownInMilliseconds = 6000, Slot = 0x211, ManaCost = 9, Ids = new Int16[] { 102 }, Range = 1600, Enabled = false });
         }
+        public bool AoeOnly { get; set; } = true;
+
+        public List<DroppedItem> ItemsToPickup { get; set; } = new List<DroppedItem>();
         private IntPtr Base
         {
             get
@@ -29,7 +32,6 @@ namespace RoseOnlineBot.Business
             }
         }
 
-        public bool WaitingForSkillExecution { get; set; } = false;
         public List<Skill> Skills { get; set; } = new List<Skill>();
 
         public UInt16 DBId
@@ -59,7 +61,7 @@ namespace RoseOnlineBot.Business
             }
         }
 
-        public List<int> Targets = new List<int>();
+        public List<NpcEntity> Targets = new List<NpcEntity>();
 
         public Int16 TargetId
         {
@@ -96,12 +98,14 @@ namespace RoseOnlineBot.Business
             }
         }
 
+        public bool PartyMode { get; internal set; } = false;
+
         public List<NpcEntity> GetMobs()
         {
             List<NpcEntity> mobs = new List<NpcEntity>();
             var firstPointer = GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.EngineBaseOffset);
             IntPtr firstMobAddress = GameData.Handle.ReadMemory<IntPtr>(firstPointer + 0x22050);
-            Int16[] ignoreIdList = new Int16[] { 781, 782, 783, 784, 785, 786, 787, 788, 789, 790, 791, 792, 793, 794, 795, 796, 797, 798, 799, 800, 801, 802, 803, 804, 805, 806, 807, 808, 809, 810 }; //  summoned npcs like bonfires etc
+            Int16[] ignoreIdList = new Int16[] { 781, 782, 783, 784, 785, 786, 787, 788, 789, 790, 791, 792, 793, 794, 795, 796, 797, 798, 799, 800, 801, 802, 803, 804, 805, 806, 807, 808, 809, 810, 811,812,813,814,815,816,817,818,819,820, 821, 822, 823, 824, 825, 826, 827, 828, 829,830, 831, 832, 833, 834, 835, 836, 837, 838, 839, 840, 841, 842, 843, 844, 845, 846, 847, 848, 849,850,851,852,853,854,855,856,857,858,859,860,861,862,863,864,865,866,867,868,869,870,871,872,873,874,875,876,877,878,879,880,881,882,883,884,885,886,887,888,889,890,891,892,893,894,895,896,897,898,899,900}; //  summoned npcs like bonfires etc
 
             int x = 0;
             while (true)
@@ -130,7 +134,6 @@ namespace RoseOnlineBot.Business
         }
         public void CastSpellOnTarget(UInt16 targetId, Int16 slotNo)
         {
-            WaitingForSkillExecution = true;
             Int16 action = 0x7b3;
             var actionAsByte = BitConverter.GetBytes(action);
 
@@ -142,7 +145,6 @@ namespace RoseOnlineBot.Business
         }
         public void CastSpellOnMySelf(Int16 slotNo)
         {
-            WaitingForSkillExecution = true;
             Int16 action = 0x7b2;
             var actionAsByte = BitConverter.GetBytes(action);
 
@@ -176,8 +178,12 @@ namespace RoseOnlineBot.Business
             if (mobs.Count > 0)
             {
                 var closestMob = mobs.Where(x => x.HP > 0).OrderBy(x => Vector2D.CalculateDistance(posX, posY, x.PosX, x.PosY)).ToList();
-                var closest = closestMob[0];
-                return closest;
+                if (closestMob.Count > 0)
+                {
+                    var closest = closestMob[0];
+                    return closest;
+                }
+
             }
             return null;
         }
@@ -189,6 +195,33 @@ namespace RoseOnlineBot.Business
 
             byte[] itemIdAsBytes = BitConverter.GetBytes(itemId);
             GameData.SendMessage(new byte[] { 0x9, 00, actionAsByte[0], actionAsByte[1], 0xd1, 0x58, 0x00, itemIdAsBytes[0], itemIdAsBytes[1] });
+        }
+
+        public void UseItem(UInt64 itemId)
+        {
+            Int16 action = 0x7a3;
+            var actionAsByte = BitConverter.GetBytes(action);
+
+
+            byte[] itemIdAsBytes = BitConverter.GetBytes(itemId);
+            GameData.SendMessage(new byte[] { 0x0e, 00, actionAsByte[0], actionAsByte[1], 0xd1, 0x58, itemIdAsBytes[0], itemIdAsBytes[1], itemIdAsBytes[2], itemIdAsBytes[3], itemIdAsBytes[4], itemIdAsBytes[5], itemIdAsBytes[6], itemIdAsBytes[7] });
+        }
+
+        public void AcceptQuest()
+        {
+            Int16 action = 0x730;
+            var actionAsByte = BitConverter.GetBytes(action);
+
+
+            GameData.SendMessage(new byte[] { 0x0c, 00, actionAsByte[0], actionAsByte[1], 0xd1, 0x58, 0x03, 0x00, 0x61, 0xba, 0x9d, 0xfe });
+        }
+        public void TurnInQuest()
+        {
+            Int16 action = 0x730;
+            var actionAsByte = BitConverter.GetBytes(action);
+
+
+            GameData.SendMessage(new byte[] { 0x0c, 00, actionAsByte[0], actionAsByte[1], 0xd1, 0x58, 0x03, 0x00, 0x97, 0x42, 0x9d, 0xfe });
         }
 
         public void SendJoinZone()
@@ -332,7 +365,7 @@ namespace RoseOnlineBot.Business
             }
             return inventory;
         }
-        
+
 
     }
 }

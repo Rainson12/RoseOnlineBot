@@ -68,17 +68,24 @@ namespace RoseOnlineBot
             {
                 InventoryUIOffset = GamePointerHelper.GetInventoryUIOffsetFromPatternResult(Handle, BaseAddress, InventoryUIBasePattern.Value);
             }
+            if (patternsInfo.FirstOrDefault(x => x.Key == "NoClip") is KeyValuePair<string, int> NoCLipBasePattern)
+            {
+                GamePointerHelper.EnableNoClip(Handle, BaseAddress, NoCLipBasePattern.Value);
+            }
+            
 
             Player = new Player();
             IsInitialized = true;
         }
 
-
+        private static object lockObj = new object();
         public static void SendMessage(byte[] message)
         {
-            
-            MessageStruct messageData = new MessageStruct() { data = Encoding.Unicode.GetString(message), length = message.Length };
-            Injector.CallExport("rBotMagic.dll", "sendData", messageData, message);
+            lock(lockObj)
+            {
+                MessageStruct messageData = new MessageStruct() { data = Encoding.Unicode.GetString(message), length = message.Length };
+                Injector.CallExport("rBotMagic.dll", "sendData", messageData, message);
+            }
         }
 
 

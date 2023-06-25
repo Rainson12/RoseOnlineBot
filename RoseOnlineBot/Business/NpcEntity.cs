@@ -19,7 +19,11 @@ namespace RoseOnlineBot.Business
             get
             {
                 var firstPtr = GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.EngineBaseOffset);
-                return GameData.Handle.ReadMemory<IntPtr>(firstPtr + Id * 8 + 0x00022078) != 0;
+                var idNotNull =  GameData.Handle.ReadMemory<IntPtr>(firstPtr + Id * 8 + 0x00022078) != 0;
+                if (idNotNull == false)
+                    return false;
+                else
+                    return HP > 0;
             }
         }
 

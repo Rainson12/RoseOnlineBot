@@ -16,6 +16,7 @@ namespace RoseOnlineBot.Models.Logic
         StandingUp = 7,
         StandingUpAndStartRunning = 8,
         ExecutingSkill = 9,
+        Dead = 0x10,
         PrepareExecutingSkill = 17,
 
 

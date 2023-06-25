@@ -114,23 +114,7 @@
 //        }
 
 
-//        public static void saveWaypoints(List<WayPoint> Waypoints, string fileName)
-//        {
-//            XmlSerializer serializer = new XmlSerializer(typeof(List<Waypoint>));
-//            TextWriter textWriter = new StreamWriter(fileName);
-//            serializer.Serialize(textWriter, Waypoints);
-//            textWriter.Close();
-//        }
-//        public static List<Waypoint> readWaypoints(string fileName)
-//        {
-//            XmlSerializer deserializer = new XmlSerializer(typeof(List<Waypoint>));
-//            TextReader textReader = new StreamReader(fileName);
-//            List<Waypoint> Waypoints;
-//            Waypoints = (List<Waypoint>)deserializer.Deserialize(textReader);
-//            textReader.Close();
 
-//            return Waypoints;
-//        }
 
 //        bool getValueOfAddressIsUsed = false;
 

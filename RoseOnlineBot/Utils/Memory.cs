@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
 using GameOffsets.Natives;
@@ -31,7 +33,7 @@ internal class Memory : SafeHandleZeroOrMinusOneIsInvalid {
     /// <param name="processId">processId you want to access.</param>
     internal Memory(int processId)
         : base(true) {
-        var handle = NativeWrapper.OpenProcess(ProcessMemoryUtilities.Native.ProcessAccessFlags.VirtualMemoryRead | ProcessMemoryUtilities.Native.ProcessAccessFlags.VirtualMemoryWrite, processId);
+        var handle = NativeWrapper.OpenProcess(ProcessMemoryUtilities.Native.ProcessAccessFlags.VirtualMemoryRead | ProcessMemoryUtilities.Native.ProcessAccessFlags.VirtualMemoryWrite | ProcessMemoryUtilities.Native.ProcessAccessFlags.CreateProcess | ProcessMemoryUtilities.Native.ProcessAccessFlags.Read | ProcessMemoryUtilities.Native.ProcessAccessFlags.Write | ProcessMemoryUtilities.Native.ProcessAccessFlags.VirtualMemoryOperation, processId);
         if (NativeWrapper.HasError) {
             Console.WriteLine($"Failed to open a new handle 0x{handle:X}" +
                               $" due to ErrorNo: {NativeWrapper.LastError}");
@@ -325,6 +327,27 @@ internal class Memory : SafeHandleZeroOrMinusOneIsInvalid {
         {
             var result = NativeWrapper.WriteProcessMemory<T>(this.handle, address, ref data);
             return result;
+        }
+        catch (Exception e)
+        {
+            //Core.AddToLog("Mem.Read exc: " + e.Message + add, MessType.Critical);
+            return false;
+        }
+    }
+
+    internal bool WriteMemoryArray(IntPtr address, byte[] data)
+    {
+
+        
+        if (this.IsInvalid || address.ToInt64() <= 0)
+        {
+            //Core.AddToLog("Mem.Read adres wrong: [" + (aw_count += 1) + "]" + add, MessType.Critical);
+        }
+        //TODO uncomment here and learn the pain of coroutine imperfection :-))
+        //Thread.Sleep(1); 
+        try
+        {
+            return Imports.WriteProcessMemory(this.handle, address, data, (uint)data.Length, out _);
         }
         catch (Exception e)
         {
