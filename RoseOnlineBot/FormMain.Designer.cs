@@ -91,6 +91,7 @@
             this.label14 = new System.Windows.Forms.Label();
             this.lblEXPperHour = new System.Windows.Forms.Label();
             this.label13 = new System.Windows.Forms.Label();
+            this.button3 = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -135,6 +136,7 @@
             // tabPage1
             // 
             this.tabPage1.BackColor = System.Drawing.Color.SlateGray;
+            this.tabPage1.Controls.Add(this.button3);
             this.tabPage1.Controls.Add(this.button2);
             this.tabPage1.Controls.Add(this.button1);
             this.tabPage1.Controls.Add(this.label3);
@@ -908,6 +910,17 @@
             this.label13.TabIndex = 0;
             this.label13.Text = "EXP/h: ";
             // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(202, 417);
+            this.button3.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(88, 27);
+            this.button3.TabIndex = 13;
+            this.button3.Text = "Test Call";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -1008,6 +1021,7 @@
         private System.Windows.Forms.Label lblWeight;
         private System.Windows.Forms.Button button1;
         private Button button2;
+        private Button button3;
     }
 }
 

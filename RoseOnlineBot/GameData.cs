@@ -1,5 +1,6 @@
 ﻿using ProcessMemoryUtilities.Managed;
 using RoseOnlineBot.Business;
+using RoseOnlineBot.Models.Metadata;
 using RoseOnlineBot.Utils;
 using System;
 using System.Collections.Generic;
@@ -29,6 +30,10 @@ namespace RoseOnlineBot
 
         public static List<Int16> MobIdIgnoreList { get; set; } = new List<Int16>();
         public static bool IsInitialized { get; set; } = false;
+
+        public static List<UsableItem> UsableRecoveryItems { get; set; }
+
+
 
         public static void Init(Process process, Communication pipe)
         {
@@ -72,8 +77,9 @@ namespace RoseOnlineBot
             {
                 GamePointerHelper.EnableNoClip(Handle, BaseAddress, NoCLipBasePattern.Value);
             }
-            
 
+
+            UsableRecoveryItems = new MetaDataReader().ReadUsableRecoveryItems();
             Player = new Player();
             IsInitialized = true;
         }

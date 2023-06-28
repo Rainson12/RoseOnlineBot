@@ -21,6 +21,7 @@ using RoseOnlineBot.Classes;
 using RoseOnlineBot.Models.Logic;
 using System.Xml.Serialization;
 using System.Runtime;
+using RoseOnlineBot.Models.Metadata;
 
 namespace RoseOnlineBot
 {
@@ -180,8 +181,8 @@ namespace RoseOnlineBot
 
         private void button2_Click(object sender, EventArgs e)
         {
-            //GameData.Player.TurnInQuest();
-            //GameData.Player.AcceptQuest();
+            GameData.Player.TurnInQuest();
+            GameData.Player.AcceptQuest();
             //var data = GameData.Player.GetInventory();
             //GameData.Player.UseItem(data.Consumabes[3].DBId);
             var combat = new Combat();
@@ -203,9 +204,42 @@ namespace RoseOnlineBot
         }
 
 
+        private System.Timers.Timer hpCheckTimer;
+        private void HpCheckTimer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+        {
+            hpCheckTimer.Stop();
+            if (Convert.ToSingle(GameData.Player.HP) / Convert.ToSingle(GameData.Player.MAXHP) < 0.4f) // low on hp 
+            {
+                var usableItems = GameData.UsableRecoveryItems;
+                var inventory = GameData.Player.GetInventory();
+
+
+                var items = inventory.Consumables.Where(x => usableItems.Any(y => y.ItemId == x.ItemId && y.ItemType == ItemType.Food)).Select(x => new { inventoryItem = x, Metadata = usableItems.First(y => y.ItemId == x.ItemId) }).ToArray();
+                if (items.Length > 0)
+                {
+                    var bestItem = items.OrderByDescending(x => x.Metadata.RestoreAmount).First();
+                    var recoveryAmount = bestItem.Metadata.RestoreAmount * 20;
+                    GameData.Player.UseItem(bestItem.inventoryItem.DBId);
+                    Thread.Sleep(20000); // status effect duration
+                }
+            }
+            if(hpCheckTimer != null)
+                hpCheckTimer.Start();
+        }
+
+        
         Thread combatThread = null;
         private void button1_Click(object sender, EventArgs e)
         {
+         
+            if (hpCheckTimer == null)
+            {
+                hpCheckTimer = new System.Timers.Timer();
+                hpCheckTimer.Interval = 50;
+                hpCheckTimer.Enabled = true;
+                hpCheckTimer.Elapsed += HpCheckTimer_Elapsed;
+            }
+
             if(combatThread == null)
             {
                 if (GameData.Player.PartyMode == true)
@@ -213,16 +247,24 @@ namespace RoseOnlineBot
                 else
                     combatThread = new Thread(new ThreadStart(new Combat().SingleTargetMode));
                 combatThread.Start();
+                hpCheckTimer.Start();
+
                 button1.Text = "Stop";
             }
             else
             {
                 combatThread.Interrupt();
+                hpCheckTimer.Stop();
+                hpCheckTimer = null;
                 button1.Text = "Start Bot";
                 combatThread = null;
             }
             
         }
 
+        private void button3_Click(object sender, EventArgs e)
+        {
+            GameData.Player.GetQuestProgess();
+        }
     }
 }

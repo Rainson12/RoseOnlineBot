@@ -213,7 +213,7 @@ namespace RoseOnlineBot.Business
             var actionAsByte = BitConverter.GetBytes(action);
 
 
-            GameData.SendMessage(new byte[] { 0x0c, 00, actionAsByte[0], actionAsByte[1], 0xd1, 0x58, 0x03, 0x00, 0x61, 0xba, 0x9d, 0xfe });
+            GameData.SendMessage(new byte[] { 0x0c, 00, actionAsByte[0], actionAsByte[1], 0xd1, 0x58, 0x03, 0x00, 0xf2, 0x92, 0xfc, 0xdd });
         }
         public void TurnInQuest()
         {
@@ -221,7 +221,7 @@ namespace RoseOnlineBot.Business
             var actionAsByte = BitConverter.GetBytes(action);
 
 
-            GameData.SendMessage(new byte[] { 0x0c, 00, actionAsByte[0], actionAsByte[1], 0xd1, 0x58, 0x03, 0x00, 0x97, 0x42, 0x9d, 0xfe });
+            GameData.SendMessage(new byte[] { 0x0c, 00, actionAsByte[0], actionAsByte[1], 0xd1, 0x58, 0x03, 0x00, 0x04, 0x6a, 0xfc, 0xdd });
         }
 
         public void SendJoinZone()
@@ -249,7 +249,16 @@ namespace RoseOnlineBot.Business
             var actionAsByte3 = BitConverter.GetBytes(action3);
             GameData.SendMessage(new byte[] { 0x8, 00, actionAsByte3[0], actionAsByte3[1], 0xd1, 0x58, 0xe0, 0x86 });
         }
+        public void GetQuestProgess(int questIndex = 0)
+        {
+            var rcx_10 = GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.CurrentCharacterBaseOffset);
+            var arg1 = rcx_10 + 0x2418;
+            var rbx = arg1 + 0x3C;
+            var rcx = rbx + (questIndex * 0x230) + 0x1c;
+            var questValue = GameData.Handle.ReadMemory<Int16>(rcx + 0x20);
+            var questId = GameData.Handle.ReadMemory<Int16>(rcx + 0x210);
 
+        }
         public Inventory GetInventory()
         {
             Inventory inventory = new();
@@ -358,7 +367,7 @@ namespace RoseOnlineBot.Business
                 if (stashCnt == 0)
                     inventory.EquipmentItems = stashItems;
                 else if (stashCnt == 1)
-                    inventory.Consumabes = stashItems;
+                    inventory.Consumables = stashItems;
                 else if (stashCnt == 2)
                     inventory.Materials = stashItems;
 

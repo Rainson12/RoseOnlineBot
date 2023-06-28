@@ -7,13 +7,17 @@
 
 using RoseOnlineBot.Business;
 using RoseOnlineBot.Models.Logic;
+using RoseOnlineBot.Models.Metadata;
 using RoseOnlineBot.Utils;
 using System.IO.Packaging;
+using System.Security.Cryptography.X509Certificates;
 
 namespace RoseOnlineBot.Classes
 {
     public class Combat
     {
+
+        
 
         public void Loot(float maxDistance = 2000)
         {
@@ -134,7 +138,7 @@ namespace RoseOnlineBot.Classes
                             {
                                 GameData.Player.AttackTarget(target.DBId);
                                 Thread.Sleep(300);
-                                if (GameData.Player.CurrentAnimation == Animation.Stand)
+                                if (GameData.Player.CurrentAnimation == Animation.Stand || GameData.Player.CurrentAnimation == Animation.Sit)
                                 {
                                     // cant reach target
                                     for (int x = 0; x < 10; x++)
@@ -146,7 +150,7 @@ namespace RoseOnlineBot.Classes
                                             break;
                                         }
                                     }
-                                    if (GameData.Player.CurrentAnimation == Animation.Stand)
+                                    if (GameData.Player.CurrentAnimation == Animation.Stand || GameData.Player.CurrentAnimation == Animation.Sit)
                                     {
                                         // ignore target
                                         GameData.Player.Targets.Remove(GameData.Player.Targets[i]);

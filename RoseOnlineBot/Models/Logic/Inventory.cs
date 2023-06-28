@@ -9,7 +9,7 @@ namespace RoseOnlineBot.Models.Logic
     internal class Inventory
     {
         public List<InventoryItem> EquipmentItems { get; set; }
-        public List<InventoryItem> Consumabes { get; set; }
+        public List<InventoryItem> Consumables { get; set; }
         public List<InventoryItem> Materials { get; set; }
     }
     internal class InventoryItem
