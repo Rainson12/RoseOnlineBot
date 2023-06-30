@@ -44,6 +44,8 @@ namespace RoseOnlineBot.Business
         }
         public IntPtr InventoryPtr => Base + 0x3D58;
 
+        public Single LastOpenedShopXCoord { get; set; }
+        public Single LastOpenedShopYCoord { get; set; }
         public Int16 Id => GameData.Handle.ReadMemory<Int16>(Base + 0x1c);
         public Int32 HP => GameData.Handle.ReadMemory<Int16>(Base + 0x28 + 0x3ac0);
         public Int32 MAXHP => GameData.Handle.ReadMemory<Int16>(Base + 0x4620);
@@ -98,7 +100,7 @@ namespace RoseOnlineBot.Business
             }
         }
 
-        public bool PartyMode { get; internal set; } = false;
+        public bool PartyMode { get; internal set; } = true;
 
         public List<NpcEntity> GetMobs()
         {
@@ -113,16 +115,37 @@ namespace RoseOnlineBot.Business
                 IntPtr npcIdAddress = firstMobAddress + x * 4;
                 var npcId = GameData.Handle.ReadMemory<Int16>(npcIdAddress);
                 NpcEntity npc = new(npcId);
-                if (npc.Type == 0x40 && !ignoreIdList.Contains(npc.NpcStbId))
+                if (npc.Type == 0x60 && !ignoreIdList.Contains(npc.NpcStbId))
                 {
                     // only add mobs
                     mobs.Add(npc);
                 }
-                if (npc.Type == 0x00)
+                if (npc.Type == 0x00 && npc.PosX == 0)
                     break;
                 x++;
             }
             return mobs;
+        }
+        public List<NpcEntity> GetPlayers()
+        {
+            List<NpcEntity> players = new List<NpcEntity>();
+            var firstPointer = GameData.Handle.ReadMemory<IntPtr>(GameData.BaseAddress + GameData.EngineBaseOffset);
+            IntPtr firstMobAddress = GameData.Handle.ReadMemory<IntPtr>(firstPointer + 0x22050);
+
+            int x = 0;
+            while (true)
+            {
+                IntPtr npcIdAddress = firstMobAddress + x * 4;
+                var npcId = GameData.Handle.ReadMemory<Int16>(npcIdAddress);
+                NpcEntity npc = new(npcId);
+                if (npc.Type == 0x60)
+                    players.Add(npc);
+
+                if (npc.Type == 0x00 && npc.PosX == 0)
+                    break;
+                x++;
+            }
+            return players;
         }
         public void Move(float x, float y)
         {
@@ -207,21 +230,21 @@ namespace RoseOnlineBot.Business
             GameData.SendMessage(new byte[] { 0x0e, 00, actionAsByte[0], actionAsByte[1], 0xd1, 0x58, itemIdAsBytes[0], itemIdAsBytes[1], itemIdAsBytes[2], itemIdAsBytes[3], itemIdAsBytes[4], itemIdAsBytes[5], itemIdAsBytes[6], itemIdAsBytes[7] });
         }
 
-        public void AcceptQuest()
+        public void AcceptQuest(byte[] questId)
         {
             Int16 action = 0x730;
             var actionAsByte = BitConverter.GetBytes(action);
 
 
-            GameData.SendMessage(new byte[] { 0x0c, 00, actionAsByte[0], actionAsByte[1], 0xd1, 0x58, 0x03, 0x00, 0xf2, 0x92, 0xfc, 0xdd });
+            GameData.SendMessage(new byte[] { 0x0c, 00, actionAsByte[0], actionAsByte[1], 0xd1, 0x58, 0x03, 0x00, questId[0], questId[1], questId[2], questId[3] });
         }
-        public void TurnInQuest()
+        public void TurnInQuest(byte[] questId)
         {
             Int16 action = 0x730;
             var actionAsByte = BitConverter.GetBytes(action);
 
 
-            GameData.SendMessage(new byte[] { 0x0c, 00, actionAsByte[0], actionAsByte[1], 0xd1, 0x58, 0x03, 0x00, 0x04, 0x6a, 0xfc, 0xdd });
+            GameData.SendMessage(new byte[] { 0x0c, 00, actionAsByte[0], actionAsByte[1], 0xd1, 0x58, 0x03, 0x00, questId[0], questId[1], questId[2], questId[3] });
         }
 
         public void SendJoinZone()
@@ -257,8 +280,18 @@ namespace RoseOnlineBot.Business
             var rcx = rbx + (questIndex * 0x230) + 0x1c;
             var questValue = GameData.Handle.ReadMemory<Int16>(rcx + 0x20);
             var questId = GameData.Handle.ReadMemory<Int16>(rcx + 0x210);
-
         }
+
+        public void UseCart()
+        {
+            Int16 action = 0x782;
+            var actionAsByte = BitConverter.GetBytes(action);
+
+            
+            GameData.SendMessage(new byte[] { 0x7, 00, actionAsByte[0], actionAsByte[1], 0xd1, 0x58, 0x02 });
+        }
+
+
         public Inventory GetInventory()
         {
             Inventory inventory = new();
@@ -375,6 +408,13 @@ namespace RoseOnlineBot.Business
             return inventory;
         }
 
+        internal void OpenShop(ushort playerId)
+        {
+            Int16 action = 0x7c4;
+            var actionAsByte = BitConverter.GetBytes(action);
+            byte[] playerIdAsBytes = BitConverter.GetBytes(playerId);
 
+            GameData.SendMessage(new byte[] { 0x8, 00, actionAsByte[0], actionAsByte[1], 0xd1, 0x58, playerIdAsBytes[0], playerIdAsBytes[1] });
+        }
     }
 }

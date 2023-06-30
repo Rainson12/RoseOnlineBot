@@ -22,6 +22,7 @@ using RoseOnlineBot.Models.Logic;
 using System.Xml.Serialization;
 using System.Runtime;
 using RoseOnlineBot.Models.Metadata;
+using System.Numerics;
 
 namespace RoseOnlineBot
 {
@@ -38,37 +39,7 @@ namespace RoseOnlineBot
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            // check if process is running
-            Process[] p = Process.GetProcessesByName("Trose");
-            Process selectedProcess = null;
-            if (p.Length > 1)
-            {
-                SelectProcess selectProcess = new SelectProcess(p);
-                if (selectProcess.ShowDialog() == DialogResult.OK)
-                    selectedProcess = Process.GetProcessById(int.Parse(selectProcess.comboBox1.SelectedItem.ToString()));
-            }
-            else if (p.Length > 0)
-                selectedProcess = p[0];
-            if (selectedProcess != null)
-            {
-                EjectIfAlreadyInjected(selectedProcess);
-                pipeServer = new Communication(@"myRosePipe" + selectedProcess.Id);
-                pipeServer.Start();
 
-
-
-                Thread.Sleep(1000);
-                GameData.Init(selectedProcess, pipeServer);
-
-                //Main _main = new Main(myProcess, pipeServer, txWaypointPath.Text);
-                //Thread main = new Thread(new ThreadStart(_main.start));
-                //Thread.Sleep(1000);
-                //main.Start();
-            }
-            else
-            {
-                MessageBox.Show("Please start Rose Online first");
-            }
         }
 
         private void EjectIfAlreadyInjected(Process myProcess)
@@ -123,6 +94,7 @@ namespace RoseOnlineBot
         private void btnRecordWay_Click(object sender, EventArgs e)
         {
             rw = new RecordWaypoint(this);
+            rtbWaypoints.Text = "";
             rw.startRecordingWay();
             btnStopRecord.Enabled = true;
             btnRecordWay.Enabled = false;
@@ -181,16 +153,79 @@ namespace RoseOnlineBot
 
         private void button2_Click(object sender, EventArgs e)
         {
-            GameData.Player.TurnInQuest();
-            GameData.Player.AcceptQuest();
-            //var data = GameData.Player.GetInventory();
-            //GameData.Player.UseItem(data.Consumabes[3].DBId);
+            //var anim = GameData.Player.CurrentAnimation;
+            Thread.Sleep(100);
+            GameData.Player.UseCart();
+            Thread.Sleep(100);
             var combat = new Combat();
-            var waypoints = readWaypoints(txWaypointPath.Text);
-            foreach(var waypoint in waypoints)
+
+            // return
+            var waypoints = readWaypoints(@"C:\Users\Rainson\Documents\RoseOnBot\plants_spot_3_solo\return_to_town.xml");
+            //foreach (var waypoint in waypoints)
+            //{
+            //    combat.MoveToCoordinate(waypoint.CoordX, waypoint.CoordY, false, false);
+            //}
+
+
+            //q1 pincer claws
+            GameData.Player.TurnInQuest(new byte[] { 0x17, 0x6a, 0x77, 0x3b });
+            Thread.Sleep(50);
+            GameData.Player.AcceptQuest(new byte[] { 0x4e, 0xd6, 0x74, 0x3b });
+            Thread.Sleep(50);
+
+            //q2 nephentess pollen
+            GameData.Player.TurnInQuest(new byte[] { 0xef, 0x65, 0xb3, 0x55 });
+            Thread.Sleep(50);
+            GameData.Player.AcceptQuest(new byte[] { 0xb6, 0xd9, 0xb0, 0x55 });
+            Thread.Sleep(50);
+
+            // move to second npc
+            waypoints = readWaypoints(@"C:\Users\Rainson\Documents\RoseOnBot\plants_spot_q\town_move_to_q3.xml");
+            foreach (var waypoint in waypoints)
             {
-                combat.MoveToCoordinate(waypoint.CoordX, waypoint.CoordY, false);
+                combat.MoveToCoordinate(waypoint.CoordX, waypoint.CoordY, false, false);
             }
+
+
+            Thread.Sleep(50);
+            // q3 stockpilling high quality pollon
+            GameData.Player.TurnInQuest(new byte[] { 0x98, 0xc9, 0x5f, 0xb6 });
+            Thread.Sleep(50);
+            GameData.Player.AcceptQuest(new byte[] { 0xc1, 0x75, 0x5c, 0xb6 });
+            Thread.Sleep(50);
+
+
+            // move to third npc
+            waypoints = readWaypoints(@"C:\Users\Rainson\Documents\RoseOnBot\plants_spot_q\town_move_to_q4.xml");
+            foreach (var waypoint in waypoints)
+            {
+                combat.MoveToCoordinate(waypoint.CoordX, waypoint.CoordY, false, false);
+            }
+
+            // q4 Pollon Information research
+            GameData.Player.TurnInQuest(new byte[] { 0x70, 0xde, 0x8b, 0x45 });
+            Thread.Sleep(50);
+            GameData.Player.AcceptQuest(new byte[] { 0x29, 0x62, 0x88, 0x45 });
+            Thread.Sleep(50);
+
+            // move to thourth
+            waypoints = readWaypoints(@"C:\Users\Rainson\Documents\RoseOnBot\plants_spot_q\town_move_to_q5.xml");
+            foreach (var waypoint in waypoints)
+            {
+                combat.MoveToCoordinate(waypoint.CoordX, waypoint.CoordY, false, false);
+            }
+            // q5 Improved weapon research
+            GameData.Player.TurnInQuest(new byte[] { 0x3a, 0xb6, 0x23, 0x03 });
+            Thread.Sleep(50);
+            GameData.Player.AcceptQuest(new byte[] { 0x63, 0x0a, 0x20, 0x03 });
+            Thread.Sleep(50);
+
+            waypoints = readWaypoints(@"C:\Users\Rainson\Documents\RoseOnBot\plants_spot_3_solo\to_mobs.xml");
+            foreach (var waypoint in waypoints)
+            {
+                combat.MoveToCoordinate(waypoint.CoordX, waypoint.CoordY, false, false);
+            }
+            GameData.Player.UseCart();
         }
 
         private void richTextBox1_TextChanged(object sender, EventArgs e)
@@ -200,7 +235,37 @@ namespace RoseOnlineBot
 
         private void FormMain_Load(object sender, EventArgs e)
         {
+            // check if process is running
+            Process[] p = Process.GetProcessesByName("Trose");
+            Process selectedProcess = null;
+            if (p.Length > 1)
+            {
+                SelectProcess selectProcess = new SelectProcess(p);
+                if (selectProcess.ShowDialog() == DialogResult.OK)
+                    selectedProcess = Process.GetProcessById(int.Parse(selectProcess.comboBox1.SelectedItem.ToString()));
+            }
+            else if (p.Length > 0)
+                selectedProcess = p[0];
+            if (selectedProcess != null)
+            {
+                EjectIfAlreadyInjected(selectedProcess);
+                pipeServer = new Communication(@"myRosePipe" + selectedProcess.Id);
+                pipeServer.Start();
 
+
+
+                Thread.Sleep(1000);
+                GameData.Init(selectedProcess, pipeServer);
+
+                //Main _main = new Main(myProcess, pipeServer, txWaypointPath.Text);
+                //Thread main = new Thread(new ThreadStart(_main.start));
+                //Thread.Sleep(1000);
+                //main.Start();
+            }
+            else
+            {
+                MessageBox.Show("Please start Rose Online first");
+            }
         }
 
 
@@ -223,15 +288,38 @@ namespace RoseOnlineBot
                     Thread.Sleep(20000); // status effect duration
                 }
             }
-            if(hpCheckTimer != null)
+            if (hpCheckTimer != null)
                 hpCheckTimer.Start();
         }
 
-        
+        private System.Timers.Timer hpPotionCheckTimer;
+        private void HpPotionCheckTimer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+        {
+            hpPotionCheckTimer.Stop();
+            if (Convert.ToSingle(GameData.Player.HP) / Convert.ToSingle(GameData.Player.MAXHP) < 0.3f) // low on hp 
+            {
+                var usableItems = GameData.UsableRecoveryItems;
+                var inventory = GameData.Player.GetInventory();
+
+
+                var items = inventory.Consumables.Where(x => usableItems.Any(y => y.ItemId == x.ItemId && y.ItemType == ItemType.HPPotion)).Select(x => new { inventoryItem = x, Metadata = usableItems.First(y => y.ItemId == x.ItemId) }).ToArray();
+                if (items.Length > 0)
+                {
+                    var bestItem = items.OrderByDescending(x => x.Metadata.RestoreAmount).First();
+                    var recoveryAmount = bestItem.Metadata.RestoreAmount * 20;
+                    GameData.Player.UseItem(bestItem.inventoryItem.DBId);
+                    Thread.Sleep(20000); // status effect duration
+                }
+            }
+            if (hpPotionCheckTimer != null)
+                hpPotionCheckTimer.Start();
+        }
+
+
         Thread combatThread = null;
         private void button1_Click(object sender, EventArgs e)
         {
-         
+            GameData.Player.Targets = new List<NpcEntity>();
             if (hpCheckTimer == null)
             {
                 hpCheckTimer = new System.Timers.Timer();
@@ -239,13 +327,33 @@ namespace RoseOnlineBot
                 hpCheckTimer.Enabled = true;
                 hpCheckTimer.Elapsed += HpCheckTimer_Elapsed;
             }
-
-            if(combatThread == null)
+            if (hpPotionCheckTimer == null)
             {
-                if (GameData.Player.PartyMode == true)
-                    combatThread = new Thread(new ThreadStart(new Combat().PartyMode));
-                else
-                    combatThread = new Thread(new ThreadStart(new Combat().SingleTargetMode));
+                hpPotionCheckTimer = new System.Timers.Timer();
+                hpPotionCheckTimer.Interval = 50;
+                hpPotionCheckTimer.Enabled = true;
+                hpPotionCheckTimer.Elapsed += HpPotionCheckTimer_Elapsed;
+            }
+
+            if (combatThread == null)
+            {
+                var mode = drpMode.SelectedItem.ToString();
+                GameData.Player.PartyMode = mode.StartsWith("Party");
+                switch (mode)
+                {
+                    case "SingleTarget":
+                        combatThread = new Thread(new ThreadStart(new Combat().SingleTargetMode));
+                        break;
+                    case "PartyAOE":
+                        combatThread = new Thread(new ThreadStart(new Combat().PartyMode));
+                        break;
+                    case "PartySingleTarget":
+                        combatThread = new Thread(new ThreadStart(new Combat().PartyModeSingleTarget));
+                        break;
+                    default:
+                        break;
+                }
+                            
                 combatThread.Start();
                 hpCheckTimer.Start();
 
@@ -259,12 +367,52 @@ namespace RoseOnlineBot
                 button1.Text = "Start Bot";
                 combatThread = null;
             }
-            
+
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
             GameData.Player.GetQuestProgess();
+        }
+        List<ushort> capturedPlayersIds = new List<ushort>();
+        private void button4_Click(object sender, EventArgs e)
+        {
+            var players = GameData.Player.GetPlayers();
+
+            foreach (var player in players)
+            {
+                if (!capturedPlayersIds.Contains(player.DBId))
+                {
+                    GameData.Player.OpenShop(player.DBId);
+                    GameData.Player.LastOpenedShopXCoord = player.PosX;
+                    GameData.Player.LastOpenedShopYCoord = player.PosY;
+                    capturedPlayersIds.Add(player.DBId);
+                    Thread.Sleep(500);
+                }
+                else
+                {
+
+                }
+            }
+            var inventory = GameData.Player.GetInventory();
+            foreach (var item in inventory.Consumables)
+            {
+                var prices = GameData.StorePrices.Where(x => x.ItemId == item.ItemId).OrderByDescending(item => item.Price).ToList();
+
+            }
+            foreach (var item in inventory.Materials)
+            {
+                var prices = GameData.StorePrices.Where(x => x.ItemId == item.ItemId).OrderByDescending(item => item.Price).ToList();
+
+            }
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            var combat = new Combat();
+            float x = float.Parse(tbXCoord.Text.Replace(".", ","));
+            float y = float.Parse(tbYCoord.Text.Replace(".", ","));
+            combat.MoveToCoordinate(x, y, false);
         }
     }
 }

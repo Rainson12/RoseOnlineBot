@@ -28,17 +28,20 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.btnStart = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.drpMode = new System.Windows.Forms.ComboBox();
+            this.tbYCoord = new System.Windows.Forms.TextBox();
+            this.tbXCoord = new System.Windows.Forms.TextBox();
+            this.button5 = new System.Windows.Forms.Button();
+            this.button4 = new System.Windows.Forms.Button();
+            this.button3 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
-            this.label3 = new System.Windows.Forms.Label();
-            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.btnBrowseWaypoint = new System.Windows.Forms.Button();
             this.txWaypointPath = new System.Windows.Forms.TextBox();
-            this.btnStop = new System.Windows.Forms.Button();
             this.label5 = new System.Windows.Forms.Label();
+            this.btnStart = new System.Windows.Forms.Button();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.btnSaveWay = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
@@ -75,6 +78,8 @@
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.label3 = new System.Windows.Forms.Label();
+            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.lblWeight = new System.Windows.Forms.Label();
             this.label23 = new System.Windows.Forms.Label();
             this.lblMana = new System.Windows.Forms.Label();
@@ -91,7 +96,6 @@
             this.label14 = new System.Windows.Forms.Label();
             this.lblEXPperHour = new System.Windows.Forms.Label();
             this.label13 = new System.Windows.Forms.Label();
-            this.button3 = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -109,17 +113,6 @@
             this.tabPage4.SuspendLayout();
             this.SuspendLayout();
             // 
-            // btnStart
-            // 
-            this.btnStart.Location = new System.Drawing.Point(10, 384);
-            this.btnStart.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.btnStart.Name = "btnStart";
-            this.btnStart.Size = new System.Drawing.Size(88, 27);
-            this.btnStart.TabIndex = 0;
-            this.btnStart.Text = "Init";
-            this.btnStart.UseVisualStyleBackColor = true;
-            this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
-            // 
             // tabControl1
             // 
             this.tabControl1.Controls.Add(this.tabPage1);
@@ -136,14 +129,16 @@
             // tabPage1
             // 
             this.tabPage1.BackColor = System.Drawing.Color.SlateGray;
+            this.tabPage1.Controls.Add(this.drpMode);
+            this.tabPage1.Controls.Add(this.tbYCoord);
+            this.tabPage1.Controls.Add(this.tbXCoord);
+            this.tabPage1.Controls.Add(this.button5);
+            this.tabPage1.Controls.Add(this.button4);
             this.tabPage1.Controls.Add(this.button3);
             this.tabPage1.Controls.Add(this.button2);
             this.tabPage1.Controls.Add(this.button1);
-            this.tabPage1.Controls.Add(this.label3);
-            this.tabPage1.Controls.Add(this.richTextBox1);
             this.tabPage1.Controls.Add(this.btnBrowseWaypoint);
             this.tabPage1.Controls.Add(this.txWaypointPath);
-            this.tabPage1.Controls.Add(this.btnStop);
             this.tabPage1.Controls.Add(this.label5);
             this.tabPage1.Controls.Add(this.btnStart);
             this.tabPage1.Location = new System.Drawing.Point(4, 24);
@@ -154,6 +149,65 @@
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Main";
             // 
+            // drpMode
+            // 
+            this.drpMode.FormattingEnabled = true;
+            this.drpMode.Items.AddRange(new object[] {
+            "SingleTarget",
+            "PartyAOE",
+            "PartySingleTarget"});
+            this.drpMode.Location = new System.Drawing.Point(10, 283);
+            this.drpMode.Name = "drpMode";
+            this.drpMode.Size = new System.Drawing.Size(121, 23);
+            this.drpMode.TabIndex = 18;
+            this.drpMode.Text = "SingleTarget";
+            // 
+            // tbYCoord
+            // 
+            this.tbYCoord.Location = new System.Drawing.Point(116, 140);
+            this.tbYCoord.Name = "tbYCoord";
+            this.tbYCoord.Size = new System.Drawing.Size(100, 23);
+            this.tbYCoord.TabIndex = 17;
+            // 
+            // tbXCoord
+            // 
+            this.tbXCoord.Location = new System.Drawing.Point(10, 140);
+            this.tbXCoord.Name = "tbXCoord";
+            this.tbXCoord.Size = new System.Drawing.Size(100, 23);
+            this.tbXCoord.TabIndex = 16;
+            // 
+            // button5
+            // 
+            this.button5.Location = new System.Drawing.Point(222, 139);
+            this.button5.Name = "button5";
+            this.button5.Size = new System.Drawing.Size(75, 23);
+            this.button5.TabIndex = 15;
+            this.button5.Text = "Move!";
+            this.button5.UseVisualStyleBackColor = true;
+            this.button5.Click += new System.EventHandler(this.button5_Click);
+            // 
+            // button4
+            // 
+            this.button4.Location = new System.Drawing.Point(10, 6);
+            this.button4.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.button4.Name = "button4";
+            this.button4.Size = new System.Drawing.Size(88, 27);
+            this.button4.TabIndex = 14;
+            this.button4.Text = "Scan Shops";
+            this.button4.UseVisualStyleBackColor = true;
+            this.button4.Click += new System.EventHandler(this.button4_Click);
+            // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(323, 6);
+            this.button3.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(88, 27);
+            this.button3.TabIndex = 13;
+            this.button3.Text = "Test Call";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
             // button2
             // 
             this.button2.Location = new System.Drawing.Point(202, 384);
@@ -161,7 +215,7 @@
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(88, 27);
             this.button2.TabIndex = 12;
-            this.button2.Text = "Test Call";
+            this.button2.Text = "Return Q";
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
@@ -175,30 +229,6 @@
             this.button1.Text = "Start Bot";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.ForeColor = System.Drawing.Color.White;
-            this.label3.Location = new System.Drawing.Point(10, 9);
-            this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(27, 15);
-            this.label3.TabIndex = 10;
-            this.label3.Text = "Log";
-            // 
-            // richTextBox1
-            // 
-            this.richTextBox1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.richTextBox1.Location = new System.Drawing.Point(14, 28);
-            this.richTextBox1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.ReadOnly = true;
-            this.richTextBox1.Size = new System.Drawing.Size(387, 295);
-            this.richTextBox1.TabIndex = 0;
-            this.richTextBox1.TabStop = false;
-            this.richTextBox1.Text = "";
-            this.richTextBox1.TextChanged += new System.EventHandler(this.richTextBox1_TextChanged);
             // 
             // btnBrowseWaypoint
             // 
@@ -220,17 +250,6 @@
             this.txWaypointPath.Size = new System.Drawing.Size(166, 23);
             this.txWaypointPath.TabIndex = 7;
             // 
-            // btnStop
-            // 
-            this.btnStop.Location = new System.Drawing.Point(298, 384);
-            this.btnStop.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.btnStop.Name = "btnStop";
-            this.btnStop.Size = new System.Drawing.Size(88, 27);
-            this.btnStop.TabIndex = 6;
-            this.btnStop.Text = "Stop";
-            this.btnStop.UseVisualStyleBackColor = true;
-            this.btnStop.Click += new System.EventHandler(this.btnStop_Click);
-            // 
             // label5
             // 
             this.label5.AutoSize = true;
@@ -241,6 +260,17 @@
             this.label5.Size = new System.Drawing.Size(82, 15);
             this.label5.TabIndex = 3;
             this.label5.Text = "WayPoint File:";
+            // 
+            // btnStart
+            // 
+            this.btnStart.Location = new System.Drawing.Point(10, 384);
+            this.btnStart.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.btnStart.Name = "btnStart";
+            this.btnStart.Size = new System.Drawing.Size(88, 27);
+            this.btnStart.TabIndex = 0;
+            this.btnStart.Text = "Init";
+            this.btnStart.UseVisualStyleBackColor = true;
+            this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
             // 
             // tabPage2
             // 
@@ -725,6 +755,8 @@
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.label3);
+            this.tabPage4.Controls.Add(this.richTextBox1);
             this.tabPage4.Controls.Add(this.lblWeight);
             this.tabPage4.Controls.Add(this.label23);
             this.tabPage4.Controls.Add(this.lblMana);
@@ -749,6 +781,29 @@
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "Info";
             this.tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.ForeColor = System.Drawing.Color.White;
+            this.label3.Location = new System.Drawing.Point(8, 151);
+            this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(27, 15);
+            this.label3.TabIndex = 17;
+            this.label3.Text = "Log";
+            // 
+            // richTextBox1
+            // 
+            this.richTextBox1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.richTextBox1.Location = new System.Drawing.Point(8, 169);
+            this.richTextBox1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.richTextBox1.Name = "richTextBox1";
+            this.richTextBox1.ReadOnly = true;
+            this.richTextBox1.Size = new System.Drawing.Size(387, 295);
+            this.richTextBox1.TabIndex = 16;
+            this.richTextBox1.TabStop = false;
+            this.richTextBox1.Text = "";
             // 
             // lblWeight
             // 
@@ -910,17 +965,6 @@
             this.label13.TabIndex = 0;
             this.label13.Text = "EXP/h: ";
             // 
-            // button3
-            // 
-            this.button3.Location = new System.Drawing.Point(202, 417);
-            this.button3.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(88, 27);
-            this.button3.TabIndex = 13;
-            this.button3.Text = "Test Call";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
-            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -957,8 +1001,6 @@
         }
 
         #endregion
-
-        private System.Windows.Forms.Button btnStart;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;
@@ -967,14 +1009,11 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button btnStopRecord;
         private System.Windows.Forms.Button btnRecordWay;
-        private System.Windows.Forms.Button btnStop;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.TextBox txWaypointPath;
         private System.Windows.Forms.Button btnBrowseWaypoint;
         public System.Windows.Forms.Label lblWayoints;
         public System.Windows.Forms.RichTextBox rtbWaypoints;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.RichTextBox richTextBox1;
         private System.Windows.Forms.TabPage tabPage3;
         private System.Windows.Forms.TabPage tabPage4;
         private System.Windows.Forms.TextBox textBox1;
@@ -1022,6 +1061,14 @@
         private System.Windows.Forms.Button button1;
         private Button button2;
         private Button button3;
+        private Label label3;
+        private RichTextBox richTextBox1;
+        private Button button4;
+        private Button btnStart;
+        private TextBox tbYCoord;
+        private TextBox tbXCoord;
+        private Button button5;
+        private ComboBox drpMode;
     }
 }
 

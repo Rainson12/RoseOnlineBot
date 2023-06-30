@@ -1,5 +1,6 @@
 ﻿using ProcessMemoryUtilities.Managed;
 using RoseOnlineBot.Business;
+using RoseOnlineBot.Models.Logic;
 using RoseOnlineBot.Models.Metadata;
 using RoseOnlineBot.Utils;
 using System;
@@ -27,6 +28,8 @@ namespace RoseOnlineBot
         public static Memory Handle { get; set; }
         public static Injector Injector { get; set; }
         public static Player Player { get; set; }
+
+        public static List<ItemPrice> StorePrices { get; set; } = new List<ItemPrice>();
 
         public static List<Int16> MobIdIgnoreList { get; set; } = new List<Int16>();
         public static bool IsInitialized { get; set; } = false;

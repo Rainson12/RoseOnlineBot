@@ -10,12 +10,13 @@ using System.IO.Pipes;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Collections;
+using System.Windows.Forms;
 
 namespace RoseOnlineBot
 {
     public class Communication
     {
-        public const int BUFFER_SIZE = 256;
+        public const int BUFFER_SIZE = 4096;
         private string pipeName { get; set; }
         private Thread listenThread;
 
@@ -49,8 +50,8 @@ namespace RoseOnlineBot
                     5,
                     PipeTransmissionMode.Message,
                     PipeOptions.Asynchronous,
-                    256,
-                    256, pipeSecurity);
+                    4096,
+                    4096, pipeSecurity);
 
                 pipeServer.WaitForConnection();
 
@@ -267,11 +268,11 @@ namespace RoseOnlineBot
                     }
                     else if (nextPacketCmd == 0x7b7)
                     {
-                        //???
+                        //GSV_CLEAR_STATUS
                     }
                     else if (nextPacketCmd == 0x796)
                     {
-                        //???
+                        //GSV_STOP
                     }
                     else if (nextPacketCmd == 0x7a5)
                     {
@@ -283,8 +284,7 @@ namespace RoseOnlineBot
                     }
                     else if (nextPacketCmd == 0x770)
                     {
-                        // can not reach target?
-                        //???
+                        // GSV_ADJUST_POS
                     }
                     else if (nextPacketCmd == 0x7b6)
                     {
@@ -292,7 +292,7 @@ namespace RoseOnlineBot
                     }
                     else if (nextPacketCmd == 0x700)
                     {
-                        //???
+                        //SVR_ERROR
                     }
                     else if (nextPacketCmd == 0x79e)
                     {
@@ -301,7 +301,7 @@ namespace RoseOnlineBot
                     else if (nextPacketCmd == 0x7cd)
                     {
 
-                        // repair item?
+                        // GSV_REPAIRED_FROM_NPC
                     }
                     else if (nextPacketCmd == 0x7ec)
                     {
@@ -319,7 +319,7 @@ namespace RoseOnlineBot
                             
                             
                         }
-                        // ???
+                        // GSV_SET_ITEM_LIFE
                     }
                     else if (nextPacketCmd == 0x79b)
                     {
@@ -339,7 +339,7 @@ namespace RoseOnlineBot
                     }
                     else if (nextPacketCmd == 0x774)
                     {
-                        // ???
+                        // GSV_CHANGE_NPC
                     }
                     else if (nextPacketCmd == 0x829)
                     {
@@ -347,11 +347,11 @@ namespace RoseOnlineBot
                     }
                     else if (nextPacketCmd == 0x791)
                     {
-                        // spawn npc
+                        // spawn npc GSV_NPC_CHAR
                     }
                     else if (nextPacketCmd == 0x7a7)
                     {
-                        // some item stuff
+                        // GSV_GET_FIELDITEM_REPLY
                     }
                     else if (nextPacketCmd == 0x782)
                     {
@@ -363,7 +363,7 @@ namespace RoseOnlineBot
                     }
                     else if (nextPacketCmd == 0x7d5)
                     {
-                        // ???
+                        // GSV_CHANGE_OBJIDX
                     }
                     else if (nextPacketCmd == 0x7f5)
                     {
@@ -379,11 +379,11 @@ namespace RoseOnlineBot
                     }
                     else if (nextPacketCmd == 0x783)
                     {
-                        // ???
+                        // GSV_CHAT
                     }
                     else if (nextPacketCmd == 0x7d4)
                     {
-                        // ???
+                        // GSV_PARTY_LEVnEXP
                     }
                     else if (nextPacketCmd == 0x7f9)
                     {
@@ -391,7 +391,36 @@ namespace RoseOnlineBot
                     }
                     else if (nextPacketCmd == 0x7d2)
                     {
-                        // ???
+                        // GSV_PARTY_MEMBER
+                    }
+                    else if (nextPacketCmd == 0x7c4)
+                    {
+                        //GSV_P_STORE_LIST_REPLY
+                        var abc = bytesRead;
+                        var abc2 = nextPacketLen;
+                        var test = hexString;
+
+                        bool sellingData = subsetArray[0] == 1;
+                        bool buyingData = subsetArray[0] == 2;
+                        if(buyingData)
+                        {
+                            int itemCount = subsetArray[1];
+                            for(int i = 0; i < itemCount; i++)
+                            {
+                                var slot = subsetArray.Skip(2 + i * 85).First();
+                                var itemId = BitConverter.ToUInt16(subsetArray.Skip(2 + i * 85 + 3).Take(2).ToArray());
+                                var price = BitConverter.ToUInt32(subsetArray.Skip(2 + i * 85 + 77).Take(4).ToArray());
+                                GameData.StorePrices.Add(new Models.Logic.ItemPrice() {  ItemId = itemId, Price = price, FoundCoordX = GameData.Player.LastOpenedShopXCoord, FoundCoordY = GameData.Player.LastOpenedShopYCoord });
+                            }
+                        }
+                    }
+                    else if (nextPacketCmd == 0x7c6)
+                    {
+                        //GSV_P_STORE_RESULT
+                    }
+                    else if (nextPacketCmd == 0x7c7)
+                    {
+                        //GSV_P_STORE_MONEYnINV
                     }
                     else
                     {
@@ -404,33 +433,6 @@ namespace RoseOnlineBot
                     // no packet without header should exist?
 
                 }
-
-
-                //int bytesRead = 0;
-
-                //try
-                //{
-                //    var test = reader.Read();
-                //    var data = reader.ReadToEnd();
-                //    //buffer2 = new byte[int.Parse(_buffer[0].ToString())];
-                //    //Array.Copy(_buffer, 1, buffer2, 0, int.Parse(_buffer[0].ToString()));
-                //    //if (initCharacterID)
-                //    //{
-                //    //    string charID = memFunc.getCharacterId(buffer2);
-                //    //    if (charID != null)
-                //    //    {
-                //    //        initCharacterID = false;
-                //    //        mainLogic.charakter.ID = charID;
-                //    //    }
-                //    //}
-                //    //if (mainLogic != null)
-                //    //    mainLogic.charakter.checkPacketForDrops(buffer2);
-                //}
-                //catch
-                //{
-                //    //read error has occurred
-                //    break;
-                //}
 
                 //client has disconnected
                 if (bytesRead == 0)
