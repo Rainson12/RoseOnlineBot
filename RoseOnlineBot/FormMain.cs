@@ -154,9 +154,9 @@ namespace RoseOnlineBot
         private void button2_Click(object sender, EventArgs e)
         {
             //var anim = GameData.Player.CurrentAnimation;
-            Thread.Sleep(100);
-            GameData.Player.UseCart();
-            Thread.Sleep(100);
+            //Thread.Sleep(100);
+            //GameData.Player.UseCart();
+            //Thread.Sleep(100);
             var combat = new Combat();
 
             // return
@@ -221,11 +221,11 @@ namespace RoseOnlineBot
             Thread.Sleep(50);
 
             waypoints = readWaypoints(@"C:\Users\Rainson\Documents\RoseOnBot\plants_spot_3_solo\to_mobs.xml");
-            foreach (var waypoint in waypoints)
-            {
-                combat.MoveToCoordinate(waypoint.CoordX, waypoint.CoordY, false, false);
-            }
-            GameData.Player.UseCart();
+            //foreach (var waypoint in waypoints)
+            //{
+            //    combat.MoveToCoordinate(waypoint.CoordX, waypoint.CoordY, false, false);
+            //}
+            //GameData.Player.UseCart();
         }
 
         private void richTextBox1_TextChanged(object sender, EventArgs e)
@@ -362,6 +362,8 @@ namespace RoseOnlineBot
             else
             {
                 combatThread.Interrupt();
+                hpPotionCheckTimer.Stop();
+                hpPotionCheckTimer = null;
                 hpCheckTimer.Stop();
                 hpCheckTimer = null;
                 button1.Text = "Start Bot";
@@ -372,7 +374,7 @@ namespace RoseOnlineBot
 
         private void button3_Click(object sender, EventArgs e)
         {
-            GameData.Player.GetQuestProgess();
+            var inv = GameData.Player.GetInventory();
         }
         List<ushort> capturedPlayersIds = new List<ushort>();
         private void button4_Click(object sender, EventArgs e)

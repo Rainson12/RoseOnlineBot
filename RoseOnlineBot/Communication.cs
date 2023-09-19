@@ -413,6 +413,22 @@ namespace RoseOnlineBot
                                 GameData.StorePrices.Add(new Models.Logic.ItemPrice() {  ItemId = itemId, Price = price, FoundCoordX = GameData.Player.LastOpenedShopXCoord, FoundCoordY = GameData.Player.LastOpenedShopYCoord });
                             }
                         }
+                        else
+                        {
+                            int itemCount = subsetArray[1];
+                            for (int i = 0; i < itemCount; i++)
+                            {
+                                var slot = subsetArray.Skip(2 + i * 85).First();
+                                var itemId = BitConverter.ToUInt16(subsetArray.Skip(2 + i * 85 + 3).Take(2).ToArray());
+                                var itemId32bit = BitConverter.ToUInt32(subsetArray.Skip(2 + i * 85 + 1).Take(4).ToArray());
+                                var price = BitConverter.ToUInt32(subsetArray.Skip(2 + i * 85 + 77).Take(4).ToArray());
+                                if(itemId32bit == 67502083 && price < 1500000)
+                                {
+
+                                }
+                                //GameData.StorePrices.Add(new Models.Logic.ItemPrice() { ItemId = itemId, Price = price, FoundCoordX = GameData.Player.LastOpenedShopXCoord, FoundCoordY = GameData.Player.LastOpenedShopYCoord });
+                            }
+                        }
                     }
                     else if (nextPacketCmd == 0x7c6)
                     {

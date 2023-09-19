@@ -210,15 +210,13 @@ namespace RoseOnlineBot.Classes
             }
         }
 
-
         public void PartyModeSingleTarget()
         {
             try
             {
-                bool looting = true;
+                bool looting = false;
                 var startingPointX = GameData.Player.PosX;
                 var startingPointY = GameData.Player.PosY;
-                short maxAOEMobsInRange = 2;
                 while (true)
                 {
                     if (looting)
@@ -245,13 +243,12 @@ namespace RoseOnlineBot.Classes
                     }
 
                     // kill targets
-                    for (int i = 0; i < GameData.Player.Targets.Count; i++)
+                    if(GameData.Player.Targets.Count > 0)
                     {
-                        var target = GameData.Player.Targets[i];
+                        var target = GameData.Player.Targets[0];
                         if (target == null || !target.Exists)
                         {
-                            GameData.Player.Targets.Remove(GameData.Player.Targets[i]);
-                            i--;
+                            GameData.Player.Targets.Remove(GameData.Player.Targets[0]);
                             continue;
                         }
 
@@ -281,8 +278,7 @@ namespace RoseOnlineBot.Classes
                                     if (GameData.Player.CurrentAnimation == Animation.Stand || GameData.Player.CurrentAnimation == Animation.Sit)
                                     {
                                         // ignore target
-                                        GameData.Player.Targets.Remove(GameData.Player.Targets[i]);
-                                        i--;
+                                        GameData.Player.Targets.Remove(GameData.Player.Targets[0]);
                                         break;
                                     }
                                 }
@@ -297,7 +293,7 @@ namespace RoseOnlineBot.Classes
                                         var mobs = GameData.Player.GetMobs();
                                         var mobsInRange = mobs.Count(x => x.Exists && Vector2D.CalculateDistance(GameData.Player.PosX, GameData.Player.PosY, x.PosX, x.PosY) < skill.Range);
 
-                                        if (mobsInRange == 0 || mobsInRange > maxAOEMobsInRange || Convert.ToSingle(GameData.Player.HP) / Convert.ToSingle(GameData.Player.MAXHP) < 0.5f)
+                                        if (mobsInRange == 0)
                                             continue;
                                     }
                                     if (skill.IsAOE)
@@ -321,15 +317,15 @@ namespace RoseOnlineBot.Classes
 
                             if (!target.Exists)
                             {
-                                GameData.Player.Targets.Remove(GameData.Player.Targets[i]);
-                                i--;
+                                GameData.Player.Targets.Remove(GameData.Player.Targets[0]);
                             }
                         }
                     }
                     Thread.Sleep(10);
                 }
             }
-            catch (Exception ex) { }
+            catch (Exception ex) {
+            }
         }
 
         public void PartyMode()

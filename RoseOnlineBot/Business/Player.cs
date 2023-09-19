@@ -138,7 +138,7 @@ namespace RoseOnlineBot.Business
                 IntPtr npcIdAddress = firstMobAddress + x * 4;
                 var npcId = GameData.Handle.ReadMemory<Int16>(npcIdAddress);
                 NpcEntity npc = new(npcId);
-                if (npc.Type == 0x60)
+                if (npc.Type == 0x80)
                     players.Add(npc);
 
                 if (npc.Type == 0x00 && npc.PosX == 0)
@@ -394,6 +394,7 @@ namespace RoseOnlineBot.Business
                         // missing part
                         var amount = GameData.Handle.ReadMemory<Int16>((IntPtr)ItemBase + 0x20);
                         var _itemId = GameData.Handle.ReadMemory<Int16>((IntPtr)ItemBase + 0x0C);
+                        var _itemId2 = GameData.Handle.ReadMemory<Int32>((IntPtr)ItemBase + 0x0A);
                         stashItems.Add(new InventoryItem() { Amount = amount, DBId = (ulong)itemNetworkPackageId, ItemId = _itemId, Slot = slot });
                     }
                 }

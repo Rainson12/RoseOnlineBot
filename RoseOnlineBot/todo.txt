@@ -1,0 +1,4 @@
+* repair items before broken
+* scan available skills
+* check whether on car or not
+* get player type to scan shops
